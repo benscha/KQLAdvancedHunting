@@ -1,0 +1,7 @@
+//Based on Query from Bert-Jan P #thx
+//https://github.com/Bert-JanP/Hunting-Queries-Detection-Rules/blob/401f5fe662453450f9c4051189dfcde9f1063086/Threat%20Hunting/TI%20Feed%20-%20ThreatviewioIP-High-Confidence-Feed.md?plain=1#L4
+let ThreatIntelFeed = externaldata(Domain: string)[@"https://threatview.io/Downloads/DOMAIN-High-Confidence-Feed.txt"] with (format="txt", ignoreFirstRecord=True)
+| project Domain = tolower(Domain);
+EmailUrlInfo
+| join kind=inner ThreatIntelFeed on $left.Url == $right.Domain
+| join EmailEvents on NetworkMessageId
