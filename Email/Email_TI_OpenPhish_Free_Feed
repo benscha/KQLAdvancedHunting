@@ -1,0 +1,5 @@
+//OpenPhish Free Feed Hits in EmailUrlInfo
+let OpenPhish = externaldata(Url: string)["https://openphish.com/feed.txt"];
+EmailUrlInfo
+    | where UrlDomain has_any(OpenPhish)
+        | join EmailEvents on NetworkMessageId
