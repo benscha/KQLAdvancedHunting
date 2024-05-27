@@ -15,6 +15,8 @@ ForEach ($url in $anyrunURLs.href )
     $ContentHash = ($MalwareInfo.ParsedHTML.getElementById('hashData')).OuterText
     #DomainData
     $ContentDomain = ($MalwareInfo.ParsedHTML.getElementById('domainData')).OuterText
+    #UrlData
+    $ContentURL = ($MalwareInfo.ParsedHTML.getElementById('urlData')).OuterText
 
     $urlTxt = $url.Replace("/malware-trends/","`n#") 
     $urlTxt += "`n"
@@ -24,19 +26,29 @@ ForEach ($url in $anyrunURLs.href )
     $malfilehash += $urlTxt
     $malfilehash += $ContentHash
     $urls += $urlTxt
-    $urls += $ContentDomain
+    $urls += $ContentURL
+    $domains += $urlTxt
+    $domains += $ContentDomain
 
     }
 
 
     #Output all ips
     $ips = $ips.Replace("No IP adresses found","").Replace("`n`n","")
-    $ips | Out-File anyrun-ips.txt
+    $ips = $ips | Select -Unique
+    $ips | Out-File "anyrun-ips.txt"
 
     #Output all urls
-    $urls = $urls.Replace("No hashes found","").Replace("`n`n","")
-    $urls | Out-File "$PSScriptRoot\anyrun-url.txt"
+    $urls = $urls.Replace("No URLs found","").Replace("`n`n","")
+    $urls = $urls | Select -Unique
+    $urls | Out-File "anyrun-url.txt"
+
+    #Output all Domains
+    $domains = $domains.Replace("No Domain found","").Replace("`n`n","")
+    $domains = $domains | Select -Unique
+    $domains | Out-File "anyrun-domain.txt"
 
     #Output all malware file hashes
     $malfilehash = $malfilehash.Replace("No hashes found","").Replace("`n`n","")
-    $malfilehash | out-file  "$PSScriptRootanyrun-hash.txt"
+    $malfilehash = $malfilehash | Select -Unique
+    $malfilehash | out-file  "anyrun-hash.txt"
