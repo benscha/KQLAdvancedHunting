@@ -1,0 +1,7 @@
+//PhishingArmy Free Feed Hits in EmailUrlInfo
+let PhishingArmyFeed = externaldata(Domain: string)[@"https://phishing.army/download/phishing_army_blocklist.txt"] with (format="txt", ignoreFirstRecord=True)
+| project Domain = tolower(Domain)
+| where Domain !startswith "#";
+EmailUrlInfo
+| join kind=inner PhishingArmyFeed on $left.Url == $right.Domain
+| join EmailEvents on NetworkMessageId
