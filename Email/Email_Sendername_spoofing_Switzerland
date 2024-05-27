@@ -1,0 +1,67 @@
+// Detects Spoofed Phishing MailAuthDetails
+let SwisscomPhish = EmailEvents
+| where SenderDisplayName contains "Swisscom"
+| where not(SenderFromDomain has_any ("swisscom.com", "swisscom.ch" ))
+| where DeliveryAction !contains "Quarantine"
+| where DeliveryAction != "Blocked"
+| extend MailAuthDetails= tostring(parse_json(AuthenticationDetails))
+| extend AR = parse_json(AuthenticationDetails)
+| project Timestamp,NetworkMessageId,RecipientEmailAddress,ReportId,EmailDirection,SenderFromAddress,SenderFromDomain,SenderMailFromDomain,SenderMailFromAddress,Subject,ThreatTypes,DetectionMethods,AuthenticationDetails,SPF = (AR.SPF),DMARC = (AR.DMARC),CompAuth = (AR.CompAuth);
+let SBBPhish = EmailEvents
+| where SenderDisplayName has_any ("SBB", "Swisspass")
+| where not(SenderFromDomain has_any ("sbb.ch", "sbb.com", "sbbcargo.com", "swisspass.ch", "orellfuessli.ch", "allianceswisspass.ch"))
+| where not(SenderFromAddress has_any ("@hin.physiozentrum.ch", "sbb.services@fhnw.ch", "basel.sbb@physiozentrum.ch"))
+| where DeliveryAction !contains "Quarantine"
+| where DeliveryAction != "Blocked"
+| extend MailAuthDetails= tostring(parse_json(AuthenticationDetails))
+| extend AR = parse_json(AuthenticationDetails)
+| project Timestamp,NetworkMessageId,RecipientEmailAddress,ReportId,EmailDirection,SenderFromAddress,SenderFromDomain,SenderMailFromDomain,SenderMailFromAddress,Subject,ThreatTypes,DetectionMethods,AuthenticationDetails,SPF = (AR.SPF),DMARC = (AR.DMARC),CompAuth = (AR.CompAuth);
+let PostPhish = EmailEvents
+| where SenderDisplayName has_any ("swisspost", "DiePost CH AG")
+| where not(SenderFromDomain has_any ("post.ch" ))
+| where DeliveryAction !contains "Quarantine"
+| where DeliveryAction != "Blocked"
+| extend MailAuthDetails= tostring(parse_json(AuthenticationDetails))
+| extend AR = parse_json(AuthenticationDetails)
+| project Timestamp,NetworkMessageId,RecipientEmailAddress,ReportId,EmailDirection,SenderFromAddress,SenderFromDomain,SenderMailFromDomain,SenderMailFromAddress,Subject,ThreatTypes,DetectionMethods,AuthenticationDetails,SPF = (AR.SPF),DMARC = (AR.DMARC),CompAuth = (AR.CompAuth);
+let DHLPhish = EmailEvents
+| where SenderDisplayName contains "DHL"
+| where not(SenderFromDomain has_any ("dhl.de","dhl.com" ))
+| where DeliveryAction !contains "Quarantine"
+| where DeliveryAction != "Blocked"
+| extend MailAuthDetails= tostring(parse_json(AuthenticationDetails))
+| extend AR = parse_json(AuthenticationDetails)
+| project Timestamp,NetworkMessageId,RecipientEmailAddress,ReportId,EmailDirection,SenderFromAddress,SenderFromDomain,SenderMailFromDomain,SenderMailFromAddress,Subject,ThreatTypes,DetectionMethods,AuthenticationDetails,SPF = (AR.SPF),DMARC = (AR.DMARC),CompAuth = (AR.CompAuth);
+let UPSPhish = EmailEvents
+| where SenderDisplayName has_any ("UPS")
+| where not(SenderFromDomain has_any ("ups.com"))
+| where DeliveryAction !contains "Quarantine"
+| where DeliveryAction != "Blocked"
+| extend MailAuthDetails= tostring(parse_json(AuthenticationDetails))
+| extend AR = parse_json(AuthenticationDetails)
+| project Timestamp,NetworkMessageId,RecipientEmailAddress,ReportId,EmailDirection,SenderFromAddress,SenderFromDomain,SenderMailFromDomain,SenderMailFromAddress,Subject,ThreatTypes,DetectionMethods,AuthenticationDetails,SPF = (AR.SPF),DMARC = (AR.DMARC),CompAuth = (AR.CompAuth);
+let StreamPhish = EmailEvents
+| where SenderDisplayName has_any ("Netflix","Disney","Amazon", "Prime")
+| where not(SenderFromDomain has_any ("amazon.com","amazon.de","amazon.es","amazon.it","amazon.fr","amazon.co.uk","amazonwatch.org","primevideo.com","amazonaws","disneyplus.com", "opodo.com"))
+| where DeliveryAction !contains "Quarantine"
+| where DeliveryAction != "Blocked"
+| where ThreatTypes has_any ("Spam", "Phish")
+| extend MailAuthDetails= tostring(parse_json(AuthenticationDetails))
+| extend AR = parse_json(AuthenticationDetails)
+| project Timestamp,NetworkMessageId,RecipientEmailAddress,ReportId,EmailDirection,SenderFromAddress,SenderFromDomain,SenderMailFromDomain,SenderMailFromAddress,Subject,ThreatTypes,DetectionMethods,AuthenticationDetails,SPF = (AR.SPF),DMARC = (AR.DMARC),CompAuth = (AR.CompAuth);
+let PaypalPhish = EmailEvents
+| where SenderDisplayName has_any ("Paypal")
+| where not(SenderFromDomain has_any ("paypal.com", "paypal.ch", "paypal.de", "paypal.nl","paypal.fr"))
+| where DeliveryAction !contains "Quarantine"
+| where DeliveryAction != "Blocked"
+| where ThreatTypes has_any ("Spam", "Phish")
+| extend MailAuthDetails= tostring(parse_json(AuthenticationDetails))
+| extend AR = parse_json(AuthenticationDetails)
+| project Timestamp,NetworkMessageId,RecipientEmailAddress,ReportId,EmailDirection,SenderDisplayName,SenderFromAddress,SenderFromDomain,SenderMailFromDomain,SenderMailFromAddress,Subject,ThreatTypes,DetectionMethods,AuthenticationDetails,SPF = (AR.SPF),DMARC = (AR.DMARC),CompAuth = (AR.CompAuth);
+SBBPhish
+| union SwisscomPhish
+| union PostPhish
+| union DHLPhish
+| union UPSPhish
+| union StreamPhish
+| union PaypalPhish

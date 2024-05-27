@@ -1,0 +1,7 @@
+let domains = externaldata (data:string)[h@"https://raw.githubusercontent.com/volexity/threat-intel/main/2023/2023-06-28%20POWERSTAR/attachments/ipfs.txt"];
+let ExcludedDomains = dynamic([ "links.infos.clubmed.com"]);
+EmailEvents
+| where Timestamp > ago (30d)
+| join EmailUrlInfo on NetworkMessageId
+| where Url has_any (domains) and DeliveryAction !~ "Blocked"
+| where not(Url has_any (ExcludedDomains))
