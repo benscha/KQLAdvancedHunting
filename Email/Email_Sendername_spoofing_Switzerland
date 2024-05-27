@@ -1,4 +1,4 @@
-// Detects Spoofed Phishing MailAuthDetails
+// Detects Spoofed Phishing MailAuthDetails 
 let SwisscomPhish = EmailEvents
 | where SenderDisplayName contains "Swisscom"
 | where not(SenderFromDomain has_any ("swisscom.com", "swisscom.ch" ))
