@@ -1,0 +1,7 @@
+//Detects Hits from Botvrij.eu Feed in EmailUrlInfo
+let BotvrijRAW = externaldata(Url: string)["https://www.botvrij.eu/data/ioclist.domain"]
+    | extend Url = substring(Url, 0, indexof(Url, "#"))
+        | where isnotempty(Url) or Url != "";
+EmailUrlInfo
+    | where UrlDomain has_any(BotvrijRAW)
+        | join EmailEvents on NetworkMessageId
