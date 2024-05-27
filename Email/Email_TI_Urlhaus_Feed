@@ -1,3 +1,4 @@
+//UrlHaus Abuse.ch Hits in EmailUrlInfo
 let URLHausOnlineRAW = externaldata (UHFeed:string) ["https://urlhaus.abuse.ch/downloads/csv_online/"] with(format="txt")
 | where UHFeed !startswith "#"
 | extend UHRAW=replace_string(UHFeed, '"', '')

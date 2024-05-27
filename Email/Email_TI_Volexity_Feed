@@ -1,3 +1,4 @@
+//Volexity Feed Hits in EmailUrlInfo
 let domains = externaldata (data:string)[h@"https://raw.githubusercontent.com/volexity/threat-intel/main/2023/2023-06-28%20POWERSTAR/attachments/ipfs.txt"];
 let ExcludedDomains = dynamic([ "links.infos.clubmed.com"]);
 EmailEvents
