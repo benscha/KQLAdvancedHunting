@@ -1,4 +1,4 @@
-﻿#Get Anyrun Malware Trends Information
+#Get Anyrun Malware Trends Information
 
 
 $anyrunURLs = ((Invoke-WebRequest –Uri ‘https://any.run/malware-trends/’).Links | Where-Object {$_.href -like “/malware-trends/*”})
