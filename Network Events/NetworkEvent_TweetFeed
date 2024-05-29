@@ -4,10 +4,10 @@ let TweetFeed_month = externaldata (Date: string, Src: string, Art: string, Valu
 DeviceNetworkEvents
 | join (TweetFeed_today
 | where Art == "url"
-) on $left.RemoteUrl == $right.Art
+) on $left.RemoteUrl == $right.Value
 | join (TweetFeed_week
 | where Art == "url"
-) on $left.RemoteUrl == $right.Art
+) on $left.RemoteUrl == $right.Value
 | join (TweetFeed_month
 | where Art == "url"
-) on $left.RemoteUrl == $right.Art
+) on $left.RemoteUrl == $right.Value
