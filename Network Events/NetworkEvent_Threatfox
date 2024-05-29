@@ -1,0 +1,6 @@
+let Threatfox = externaldata (TFData: string) ["https://threatfox.abuse.ch/downloads/hostfile/"]
+| where TFData !startswith "#"
+| extend TFData = replace('127.0.0.1\\s+', "", TFData);
+DeviceNetworkEvents
+| where RemoteIPType == "Public"
+| join Threatfox on $left.RemoteUrl == $right.TFData
