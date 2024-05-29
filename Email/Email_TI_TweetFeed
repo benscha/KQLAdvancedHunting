@@ -11,4 +11,8 @@ EmailUrlInfo
 ) on $left.Url == $right.Value
 | join (TwitterFeed_month
 | where Value == "url"
+<<<<<<< HEAD
 ) on $left.Url == $right.Value
+=======
+) on $left.Url == $right.Value
+>>>>>>> 9fce6d9873a895630003e1099cafa3916818700d
