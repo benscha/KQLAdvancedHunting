@@ -3,11 +3,11 @@ let TweetFeed_week = externaldata (Date: string, Src: string, Art: string, Value
 let TweetFeed_month = externaldata (Date: string, Src: string, Art: string, Value: string) ["https://raw.githubusercontent.com/0xDanielLopez/TweetFeed/master/month.csv"];
 DeviceNetworkEvents
 //| join (TweetFeed_today
-//| where Art == "url"
+//| where Value == "url"
 //) on $left.RemoteUrl == $right.Value
 | join (TweetFeed_week
-| where Art == "url"
+| where Value == "url"
 ) on $left.RemoteUrl == $right.Value
 | join (TweetFeed_month
-| where Art == "url"
+| where Value == "url"
 ) on $left.RemoteUrl == $right.Value
