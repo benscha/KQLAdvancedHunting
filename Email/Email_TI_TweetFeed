@@ -4,11 +4,11 @@ let TwitterFeed_month = externaldata (Date: string, Src: string, Art: string, Va
 EmailUrlInfo 
 | join EmailEvents on NetworkMessageId
 | join (TwitterFeed_today
-| where Art == "url"
+| where Value == "url"
 ) on $left.Url == $right.Value
 | join (TwitterFeed_week
-| where Art == "url"
+| where Value == "url"
 ) on $left.Url == $right.Value
 | join (TwitterFeed_month
-| where Art == "url"
+| where Value == "url"
 ) on $left.Url == $right.Value
