@@ -1,0 +1,8 @@
+let Threatfox = externaldata (TFData: string) ["https://threatfox.abuse.ch/downloads/hostfile/"]
+| where TFData !startswith "#"
+| extend TFData = replace('127.0.0.1\\s+', "", TFData);
+EmailUrlInfo 
+| join EmailEvents on NetworkMessageId
+| join (Threatfox
+| where TFData == "url"
+) on $left.Url == $right.TFData
