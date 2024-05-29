@@ -1,0 +1,12 @@
+let URLHausOnlineRAW = externaldata (UHFeed:string) ["https://urlhaus.abuse.ch/downloads/csv_online/"] with(format="txt")
+| where UHFeed !startswith "#"
+| extend UHRAW=replace_string(UHFeed, '"', '')
+| project splitted=split(UHRAW, ',')
+| mv-expand id=splitted[0], dateadded=splitted[1], UHUrl=splitted[2], UHurl_status=splitted[3], UHlast_onlin=splitted[4], UHthreat=splitted[5], UHtags=splitted[6], UHLink=splitted[7], UHReporter=splitted[8]
+| extend UHUrl = tostring(UHUrl)
+| extend UHUrlDomain = tostring(parse_url(UHUrl).Host)
+| project-away splitted;
+let URLHits = EmailUrlInfo
+| join kind=inner URLHausOnlineRAW on $left.Url == $right.UHUrl
+| join EmailEvents on NetworkMessageId;
+URLHits
