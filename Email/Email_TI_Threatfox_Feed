@@ -5,4 +5,4 @@ EmailUrlInfo
 | join EmailEvents on NetworkMessageId
 | join (Threatfox
 | where TFData == "url"
-) on $left.Url == $right.TFData
+) on $left.UrlDomain == $right.TFData
