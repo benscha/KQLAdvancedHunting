@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-﻿
-# Prepare IOC
-=======
->>>>>>> b1c355d0564fbb4d499e5b6c0aaa7208b2e6a029
+
 #Get Anyrun Malware Trends Information
 
 
