@@ -1,56 +1,58 @@
-
-#Get Anyrun Malware Trends Information
-
-
-$anyrunURLs = ((Invoke-WebRequest –Uri "https://any.run/malware-trends/").Links | Where-Object { $_.href -like "/malware-trends/*" })
+# Get Anyrun Malware Trends Information
+$anyrunURLs = (Invoke-WebRequest -UseBasicParsing -Uri "https://any.run/malware-trends/").Links | Where-Object { $_.href -like "/malware-trends/*" } | select href
+ 
 $staticURLPart = "https://any.run"
-
-ForEach ($url in $anyrunURLs.href ) {
-
-    "$staticURLPart$url"
-
-    $MalwareInfo = (Invoke-WebRequest –Uri "$staticURLPart$url")
-    $MalwareInfo
-    #IPData
-    $ContentIP = ($MalwareInfo.Content.getElementById('ipData')).OuterText
-    #MalwareFileHash
-    $ContentHash = ($MalwareInfo.ParsedHTML.getElementById('hashData')).OuterText
-    #DomainData
-    $ContentDomain = ($MalwareInfo.ParsedHTML.getElementById('domainData')).OuterText
-    #UrlData
-    $ContentURL = ($MalwareInfo.ParsedHTML.getElementById('urlData')).OuterText
-
-    $urlTxt = $url.Replace("/malware-trends/", "`n#") 
-    $urlTxt += "`n"
-
-    $ips += $urlTxt
-    $ips += $ContentIP
-    $malfilehash += $urlTxt
-    $malfilehash += $ContentHash
-    $urls += $urlTxt
-    $urls += $ContentURL
-    $domains += $urlTxt
-    $domains += $ContentDomain
-
+     
+     
+ForEach ($url in $($anyrunURLs.href)) {
+        (Invoke-WebRequest -UseBasicParsing -Uri "$staticURLPart$url").Content | Out-File "$exports\any.txt"
+    ForEach ($Line in Get-Content -Path "$exports\any.txt") {
+        If ($Line -like "*ipData*") {
+            $DataName = "ipData"
+        }
+        ElseIf ($Line -like "*hashData*") {
+            $DataName = "hashData"
+        }
+        ElseIf ($Line -like "*domainData*") {
+            $DataName = "domainData"
+        }
+        ElseIf ($Line -like "*urlData*") {
+            $DataName = "urlData"
+        }
+        ElseIf ($Line -like "*list__item*") {
+            $DataValue = $Line.Replace('<div class="list__item">', '').Replace('</div>', '').Trim()
+            switch ($DataName) {
+                "ipData" {
+                    $ipData += $DataValue
+                    $ipData += "`n"
+                }
+                "hashData" {
+                    $hashData += $DataValue
+                    $hashData += "`n"
+                }
+                "domainData" {
+                    $domainData += $DataValue
+                    $domainData += "`n"
+                }
+                "urlData" {
+                    $urlData += $DataValue
+                    $urlData += "`n"
+                }
+     
+            }
+        }
+    }
+    Remove-Item -Path "$exports\any.txt" -Force
 }
-
-
-#Output all ips
-$ips = $ips.Replace("No IP adresses found", "").Replace("`n`n", "")
-$ips = $ips | Select -Unique
-$ips | Out-File "$exports\anyrun-ips.txt"
-
-#Output all urls
-$urls = $urls.Replace("No URLs found", "").Replace("`n`n", "")
-$urls = $urls | Select -Unique
-$urls | Out-File "$exports\anyrun-url.txt"
-
-#Output all Domains
-$domains = $domains.Replace("No Domain found", "").Replace("`n`n", "")
-$domains = $domains | Select -Unique
-$domains | Out-File "$exports\anyrun-domain.txt"
-
-#Output all malware file hashes
-$malfilehash = $malfilehash.Replace("No hashes found", "").Replace("`n`n", "")
-$malfilehash = $malfilehash | Select -Unique
-$malfilehash | out-file  "$exports\anyrun-hash.txt"
+    
+$ipData = $ipData.Replace("No IP addresses found", "").Replace("`n`n", "")
+$ipData | Out-File "$exports\anyrun-ips.txt" -encoding utf8
+    
+$urlData = $urlData.Replace("No URLs found", "").Replace("`n`n", "").Replace("http://", "").Replace("https://", "")
+$urlData | Out-File "$exports\anyrun-url.txt" -encoding utf8
+    
+$domainData = $domainData.Replace("No Domain found", "").Replace("`n`n", "")
+$domainData | Out-File "$exports\anyrun-domain.txt" -encoding utf8
+    
+$hashData = $hashData.Replace("No hashes found", "").Replace("`n`n", "").
+$hashData | Out-File "$exports\anyrun-hash.txt" -encoding utf8
