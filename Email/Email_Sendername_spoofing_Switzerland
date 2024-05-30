@@ -1,4 +1,4 @@
-// Detects Spoofed Phishing MailAuthDetails 
+let PhishHits = "";
 let SwisscomPhish = EmailEvents
 | where SenderDisplayName contains "Swisscom"
 | where not(SenderFromDomain has_any ("swisscom.com", "swisscom.ch" ))
@@ -6,7 +6,7 @@ let SwisscomPhish = EmailEvents
 | where DeliveryAction != "Blocked"
 | extend MailAuthDetails= tostring(parse_json(AuthenticationDetails))
 | extend AR = parse_json(AuthenticationDetails)
-| project Timestamp,NetworkMessageId,RecipientEmailAddress,ReportId,EmailDirection,SenderFromAddress,SenderFromDomain,SenderMailFromDomain,SenderMailFromAddress,Subject,ThreatTypes,DetectionMethods,AuthenticationDetails,SPF = (AR.SPF),DMARC = (AR.DMARC),CompAuth = (AR.CompAuth);
+| project Timestamp,NetworkMessageId,RecipientEmailAddress,ReportId,EmailDirection,SenderFromAddress,SenderFromDomain,SenderMailFromDomain,SenderMailFromAddress,ThreatTypes,DetectionMethods,AuthenticationDetails,SPF = (AR.SPF),DMARC = (AR.DMARC),CompAuth = (AR.CompAuth);
 let SBBPhish = EmailEvents
 | where SenderDisplayName has_any ("SBB", "Swisspass")
 | where not(SenderFromDomain has_any ("sbb.ch", "sbb.com", "sbbcargo.com", "swisspass.ch", "orellfuessli.ch", "allianceswisspass.ch"))
@@ -15,15 +15,15 @@ let SBBPhish = EmailEvents
 | where DeliveryAction != "Blocked"
 | extend MailAuthDetails= tostring(parse_json(AuthenticationDetails))
 | extend AR = parse_json(AuthenticationDetails)
-| project Timestamp,NetworkMessageId,RecipientEmailAddress,ReportId,EmailDirection,SenderFromAddress,SenderFromDomain,SenderMailFromDomain,SenderMailFromAddress,Subject,ThreatTypes,DetectionMethods,AuthenticationDetails,SPF = (AR.SPF),DMARC = (AR.DMARC),CompAuth = (AR.CompAuth);
+| project Timestamp,NetworkMessageId,RecipientEmailAddress,ReportId,EmailDirection,SenderFromAddress,SenderFromDomain,SenderMailFromDomain,SenderMailFromAddress,ThreatTypes,DetectionMethods,AuthenticationDetails,SPF = (AR.SPF),DMARC = (AR.DMARC),CompAuth = (AR.CompAuth);
 let PostPhish = EmailEvents
-| where SenderDisplayName has_any ("swisspost", "DiePost CH AG")
+| where SenderDisplayName contains "swisspost"
 | where not(SenderFromDomain has_any ("post.ch" ))
 | where DeliveryAction !contains "Quarantine"
 | where DeliveryAction != "Blocked"
 | extend MailAuthDetails= tostring(parse_json(AuthenticationDetails))
 | extend AR = parse_json(AuthenticationDetails)
-| project Timestamp,NetworkMessageId,RecipientEmailAddress,ReportId,EmailDirection,SenderFromAddress,SenderFromDomain,SenderMailFromDomain,SenderMailFromAddress,Subject,ThreatTypes,DetectionMethods,AuthenticationDetails,SPF = (AR.SPF),DMARC = (AR.DMARC),CompAuth = (AR.CompAuth);
+| project Timestamp,NetworkMessageId,RecipientEmailAddress,ReportId,EmailDirection,SenderFromAddress,SenderFromDomain,SenderMailFromDomain,SenderMailFromAddress,ThreatTypes,DetectionMethods,AuthenticationDetails,SPF = (AR.SPF),DMARC = (AR.DMARC),CompAuth = (AR.CompAuth);
 let DHLPhish = EmailEvents
 | where SenderDisplayName contains "DHL"
 | where not(SenderFromDomain has_any ("dhl.de","dhl.com" ))
@@ -31,7 +31,7 @@ let DHLPhish = EmailEvents
 | where DeliveryAction != "Blocked"
 | extend MailAuthDetails= tostring(parse_json(AuthenticationDetails))
 | extend AR = parse_json(AuthenticationDetails)
-| project Timestamp,NetworkMessageId,RecipientEmailAddress,ReportId,EmailDirection,SenderFromAddress,SenderFromDomain,SenderMailFromDomain,SenderMailFromAddress,Subject,ThreatTypes,DetectionMethods,AuthenticationDetails,SPF = (AR.SPF),DMARC = (AR.DMARC),CompAuth = (AR.CompAuth);
+| project Timestamp,NetworkMessageId,RecipientEmailAddress,ReportId,EmailDirection,SenderFromAddress,SenderFromDomain,SenderMailFromDomain,SenderMailFromAddress,ThreatTypes,DetectionMethods,AuthenticationDetails,SPF = (AR.SPF),DMARC = (AR.DMARC),CompAuth = (AR.CompAuth);
 let UPSPhish = EmailEvents
 | where SenderDisplayName has_any ("UPS")
 | where not(SenderFromDomain has_any ("ups.com"))
@@ -39,7 +39,7 @@ let UPSPhish = EmailEvents
 | where DeliveryAction != "Blocked"
 | extend MailAuthDetails= tostring(parse_json(AuthenticationDetails))
 | extend AR = parse_json(AuthenticationDetails)
-| project Timestamp,NetworkMessageId,RecipientEmailAddress,ReportId,EmailDirection,SenderFromAddress,SenderFromDomain,SenderMailFromDomain,SenderMailFromAddress,Subject,ThreatTypes,DetectionMethods,AuthenticationDetails,SPF = (AR.SPF),DMARC = (AR.DMARC),CompAuth = (AR.CompAuth);
+| project Timestamp,NetworkMessageId,RecipientEmailAddress,ReportId,EmailDirection,SenderFromAddress,SenderFromDomain,SenderMailFromDomain,SenderMailFromAddress,ThreatTypes,DetectionMethods,AuthenticationDetails,SPF = (AR.SPF),DMARC = (AR.DMARC),CompAuth = (AR.CompAuth);
 let StreamPhish = EmailEvents
 | where SenderDisplayName has_any ("Netflix","Disney","Amazon", "Prime")
 | where not(SenderFromDomain has_any ("amazon.com","amazon.de","amazon.es","amazon.it","amazon.fr","amazon.co.uk","amazonwatch.org","primevideo.com","amazonaws","disneyplus.com", "opodo.com"))
@@ -58,6 +58,15 @@ let PaypalPhish = EmailEvents
 | extend MailAuthDetails= tostring(parse_json(AuthenticationDetails))
 | extend AR = parse_json(AuthenticationDetails)
 | project Timestamp,NetworkMessageId,RecipientEmailAddress,ReportId,EmailDirection,SenderDisplayName,SenderFromAddress,SenderFromDomain,SenderMailFromDomain,SenderMailFromAddress,Subject,ThreatTypes,DetectionMethods,AuthenticationDetails,SPF = (AR.SPF),DMARC = (AR.DMARC),CompAuth = (AR.CompAuth);
+let TWINTPhish = EmailEvents
+| where SenderDisplayName has_any ("TWINT")
+| where SenderFromDomain !endswith ".ch"
+| where DeliveryAction !contains "Quarantine"
+| where DeliveryAction != "Blocked"
+| where ThreatTypes has_any ("Spam", "Phish")
+| extend MailAuthDetails= tostring(parse_json(AuthenticationDetails))
+| extend AR = parse_json(AuthenticationDetails)
+| project Timestamp,NetworkMessageId,RecipientEmailAddress,ReportId,EmailDirection,SenderDisplayName,SenderFromAddress,SenderFromDomain,SenderMailFromDomain,SenderMailFromAddress,Subject,ThreatTypes,DetectionMethods,AuthenticationDetails,SPF = (AR.SPF),DMARC = (AR.DMARC),CompAuth = (AR.CompAuth);
 SBBPhish
 | union SwisscomPhish
 | union PostPhish
@@ -65,3 +74,4 @@ SBBPhish
 | union UPSPhish
 | union StreamPhish
 | union PaypalPhish
+| union TWINTPhish
