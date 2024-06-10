@@ -1,0 +1,7 @@
+EmailUrlInfo
+| where Url contains ".atlassian.net" or Url contains "assets.adobe.com"
+| join EmailEvents on NetworkMessageId
+| where EmailDirection == "Inbound"
+| where Url contains "wiki/external" or Url contains "view=published"
+// knwon Atlassian Instances Whitelisting
+| where not(Url has_any ("mysite1", "mysite2"))
