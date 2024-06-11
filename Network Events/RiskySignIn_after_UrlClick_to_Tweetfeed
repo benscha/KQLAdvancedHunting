@@ -1,0 +1,21 @@
+let TweetFeedM = externaldata(Datetime: string, Src: string, Type: string, Indicator: string, Desc: string)["https://raw.githubusercontent.com/0xDanielLopez/TweetFeed/master/month.csv"];
+// Extract the URL from IOC Feed
+let TweetFeedURL = TweetFeedM
+    | where Type == "url";
+// Extract IPs from IOC Feed
+let TweetFeedIP = TweetFeedM
+    | where Type == "ip";
+// Test for Hits on URL 
+let HitsURL = UrlClickEvents
+    | join kind = inner TweetFeedURL on $left.Url == $right.Indicator
+        | project Timestamp, AccountUpn, Url, IPAddress;
+// Test for Hits on IPs
+let HitsIP = UrlClickEvents
+    | join kind = inner TweetFeedIP on $left.IPAddress == $right.Indicator
+        | project Timestamp, AccountUpn, Url, IPAddress;
+// join Sign in Events with RiskLevel not empty
+HitsURL
+    | union HitsIP
+        | join kind = inner AADSignInEventsBeta on $left.AccountUpn == $right.AccountUpn
+            | where Timestamp > Timestamp1
+                | where isnotempty(RiskLevelDuringSignIn) 
