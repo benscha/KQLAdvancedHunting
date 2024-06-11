@@ -3,4 +3,5 @@ UrlClickEvents
 | join kind=inner OpenPhish on $left.Url == $right.Url
 | project Timestamp, AccountUpn, Url
 | join kind=inner AADSignInEventsBeta on $left.AccountUpn == $right.AccountUpn
+| where Timestamp > Timestamp1
 | where isnotempty(RiskLevelDuringSignIn) 
