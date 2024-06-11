@@ -1,0 +1,7 @@
+let MontyGoPhish= externaldata (MontyGoPhishIP: string) ["https://raw.githubusercontent.com/montysecurity/C2-Tracker/main/data/GoPhish%20IPs.txt"];
+UrlClickEvents
+| join kind=inner MontyGoPhish on $left.IPAddress == $right.MontyGoPhishIP
+| project Timestamp, AccountUpn, Url
+| join kind=inner AADSignInEventsBeta on $left.AccountUpn == $right.AccountUpn
+| where Timestamp > Timestamp1
+| where isnotempty(RiskLevelDuringSignIn) 
