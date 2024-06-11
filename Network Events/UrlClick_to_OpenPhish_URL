@@ -1,0 +1,6 @@
+let OpenPhish = externaldata (Url: string) ["https://openphish.com/feed.txt"];
+UrlClickEvents
+| join kind=inner OpenPhish on $left.Url == $right.Url
+| project Timestamp, AccountUpn, Url
+| join kind=inner AADSignInEventsBeta on $left.AccountUpn == $right.AccountUpn
+| where isnotempty(RiskLevelDuringSignIn) 
