@@ -1,0 +1,42 @@
+//This Query detects Suspicious Outlook Inbox Rule Creations from IPAddresses wich are new or rarely used by the User
+//Define your Organisation IP Range
+let OrgCIDRIPRange = "0.0.0.0/X";
+//Define excluded Countries
+let ExcludedCountries = dynamic(["Switzerland"]);
+let InboxRuleCreated = OfficeActivity
+| where Operation in ("UpdateInboxRules", "New-InboxRule", "Set-InboxRule")
+| mv-expand parse_json(OperationProperties)
+| extend InboxOperationName = tostring(OperationProperties.Name)
+| extend InboxOperationValue = tostring(OperationProperties.Value)
+| where InboxOperationValue == "AddMailboxRule"
+| mv-expand parse_json(AppAccessContext)
+| extend UniqueTokenId = tostring(AppAccessContext.UniqueTokenId)
+| extend AADSessionId = tostring(AppAccessContext.AADSessionId)
+| extend ip_location = geo_info_from_ip_address(ClientIP)
+| extend Country = tostring(ip_location.country)  
+| extend City = tostring(ip_location.city) 
+| where not(ipv4_is_in_range(ClientIP, OrgCIDRIPRange))
+| project TimeGenerated, Operation, UserId, ClientIP, InboxOperationName, InboxOperationValue, UniqueTokenId, AADSessionId, Country, City
+| summarize TimeGenerated = arg_max(TimeGenerated, *),
+            AccountUpn = make_set(UserId),
+            ClientIP = make_set(ClientIP),
+            InboxOperationValue = make_set(InboxOperationValue),
+            UniqueTokenId = make_set(UniqueTokenId),
+            AADSessionId = make_set(AADSessionId),
+            Country = make_set(Country),
+            City = make_set(City)
+            by UserId
+| extend AccountUpn = tostring(AccountUpn);
+let SignInEvents = InboxRuleCreated
+| join kind=inner AADSignInEventsBeta on $left.UserId == $right.AccountUpn and $left.ClientIP == $right.IPAddress
+| where TimeGenerated > ago(30d)
+| project AccountUpn, AccountObjectId, IPAddress, TimeGenerated, TimeGenerated1, ReportId, Timestamp
+| extend ip_location = geo_info_from_ip_address(IPAddress)
+| extend Country = tostring(ip_location.country)  
+| extend City = tostring(ip_location.city) 
+| summarize distinct_days = dcount(startofday(TimeGenerated1)), ReportId = arg_max(ReportId, *), Timestamp = arg_max(Timestamp, *) by AccountUpn, tostring(ip_location), IPAddress;
+InboxRuleCreated
+| join kind=inner SignInEvents on $left.ClientIP == $right.IPAddress
+| where distinct_days < 2
+| where Country !in (ExcludedCountries)
+| project Timestamp, AccountUpn = UserId, ClientIP, Country, City, CountLoginDays = distinct_days, ReportId
