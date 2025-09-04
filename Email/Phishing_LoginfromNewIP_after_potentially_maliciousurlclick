@@ -1,0 +1,41 @@
+// Hunts for malicious URL clicks and evaluates IP risk for related logins.
+AlertEvidence
+| where Title == "A potentially malicious URL click was detected"
+| summarize make_set(RemoteUrl), make_set(AccountSid), make_set(AccountUpn) by AlertId, TimeGenerated
+| mv-expand set_RemoteUrl to typeof(string)
+| where isnotempty(set_RemoteUrl)
+| mv-expand set_AccountSid to typeof(string)
+| where isnotempty(set_AccountSid)
+| mv-expand set_AccountUpn to typeof(string)
+| where isnotempty(set_AccountUpn)
+| project AlertId, set_RemoteUrl, set_AccountSid, set_AccountUpn, TimeGenerated
+| distinct AlertId, set_RemoteUrl, set_AccountSid, set_AccountUpn, TimeGenerated
+// Joins with IdentityInfo for context on affected accounts.
+| join kind=leftsemi IdentityInfo on $left.set_AccountUpn == $right.EmailAddress
+// Finds successful sign-in events for the affected account.
+| join kind=inner (
+    AADSignInEventsBeta
+    | where ErrorCode == 0
+    | project Timestamp, TimeGenerated, AccountUpn, Country, IPAddress, Application
+) on $left.set_AccountUpn == $right.AccountUpn
+// Filters for logins within a 2-hour window (1h before and 1h after the alert).
+| where Timestamp between (TimeGenerated - 1h .. TimeGenerated + 1h)
+// Checks if the login IP is a new IP for the account.
+| join kind=leftouter (
+    AADSignInEventsBeta
+    | where ErrorCode == 0
+    | where Timestamp >= ago(30d)
+    | summarize HistoricalIPs = make_set(IPAddress) by AccountUpn
+) on $left.set_AccountUpn == $right.AccountUpn
+// Determines if the IP has been seen before.
+| extend IPSeenBefore = iff(array_length(set_intersect(pack_array(IPAddress), HistoricalIPs)) > 0, true, false)
+// Assigns a risk level based on IP history.
+| extend IPRiskLevel = case(
+    IPSeenBefore == false, "High Risk - New IP",
+    IPSeenBefore == true, "Lower Risk - Known IP",
+    "Unknown"
+)
+| project AlertId, set_RemoteUrl, set_AccountSid, set_AccountUpn, TimeGenerated, 
+          Timestamp, Country, IPAddress, Application, IPSeenBefore, IPRiskLevel, HistoricalIPs
+// Final filter to show only results with new, high-risk IPs.
+| where IPSeenBefore == false
