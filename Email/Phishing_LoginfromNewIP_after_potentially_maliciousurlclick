@@ -35,7 +35,13 @@ AlertEvidence
     IPSeenBefore == true, "Lower Risk - Known IP",
     "Unknown"
 )
-| project AlertId, set_RemoteUrl, set_AccountSid, set_AccountUpn, TimeGenerated, 
-          Timestamp, Country, IPAddress, Application, IPSeenBefore, IPRiskLevel, HistoricalIPs
+| extend 
+    AccountName = tostring(split(set_AccountUpn, "@")[0]),
+    AccountDomain = tostring(split(set_AccountUpn, "@")[1]),
+    AccountSid = set_AccountSid,
+    AccountUpn = set_AccountUpn,
+    RemoteUrl = set_RemoteUrl
+| project 
+    Timestamp, AlertId, AccountName, AccountDomain, AccountSid, AccountUpn, RemoteUrl, Country, IPAddress, Application, IPSeenBefore, IPRiskLevel, TimeGenerated
 // Final filter to show only results with new, high-risk IPs.
 | where IPSeenBefore == false
