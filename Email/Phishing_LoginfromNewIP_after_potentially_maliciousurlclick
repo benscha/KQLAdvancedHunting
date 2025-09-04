@@ -16,7 +16,7 @@ AlertEvidence
 | join kind=inner (
     AADSignInEventsBeta
     | where ErrorCode == 0
-    | project Timestamp, TimeGenerated, AccountUpn, Country, IPAddress, Application
+    | project Timestamp, TimeGenerated, AccountUpn, Country, IPAddress, Application, ReportId
 ) on $left.set_AccountUpn == $right.AccountUpn
 // Filters for logins within a 2-hour window (1h before and 1h after the alert).
 | where Timestamp between (TimeGenerated - 1h .. TimeGenerated + 1h)
@@ -42,6 +42,6 @@ AlertEvidence
     AccountUpn = set_AccountUpn,
     RemoteUrl = set_RemoteUrl
 | project 
-    Timestamp, AlertId, AccountName, AccountDomain, AccountSid, AccountUpn, RemoteUrl, Country, IPAddress, Application, IPSeenBefore, IPRiskLevel, TimeGenerated
+    Timestamp, AlertId, AccountName, AccountDomain, AccountSid, AccountUpn, RemoteUrl, Country, IPAddress, Application, IPSeenBefore, IPRiskLevel, TimeGenerated, ReportId
 // Final filter to show only results with new, high-risk IPs.
 | where IPSeenBefore == false
