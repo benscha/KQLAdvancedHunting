@@ -1,12 +1,35 @@
 BehaviorAnalytics
-| extend ActionUncommonlyPerformedbyUser = ActivityInsights.ActionUncommonlyPerformedByUser
+| extend ActionUncommonlyPerformedbyUser = tostring(ActivityInsights.ActionUncommonlyPerformedByUser)
 | where ActionUncommonlyPerformedbyUser == "True"
-//| extend AppUncommonlyUsedByUser  = ActivityInsights.AppUncommonlyUsedByUser
-//| where AppUncommonlyUsedByUser == "True"
-| extend ISPUncommonlyUsedByUser = ActivityInsights.ISPUncommonlyUsedByUser
+| extend ISPUncommonlyUsedByUser = tostring(ActivityInsights.ISPUncommonlyUsedByUser)
 | where ISPUncommonlyUsedByUser == "True"
-| extend CountryUncommonlyConnectedFromByUser = ActivityInsights.CountryUncommonlyConnectedFromByUser
+| extend CountryUncommonlyConnectedFromByUser = tostring(ActivityInsights.CountryUncommonlyConnectedFromByUser)
 | where CountryUncommonlyConnectedFromByUser == "True"
-| extend FirstTimeUserConnectedFromDevice = ActivityInsights.FirstTimeUserConnectedFromDevice
+| extend FirstTimeUserConnectedFromDevice = tostring(ActivityInsights.FirstTimeUserConnectedFromDevice)
 | where FirstTimeUserConnectedFromDevice == "True"
+| extend DeviceUncommonlyUsedAmongPeers = tostring(ActivityInsights.DeviceUncommonlyUsedAmongPeers)
+| where DeviceUncommonlyUsedAmongPeers == "True"
+| join ( IdentityInfo 
+| project AccountUpn, CreatedDateTime) 
+on $left.UserPrincipalName == $right.AccountUpn
+//exclude New Users
+| where CreatedDateTime < ago(60d)
 | where InvestigationPriority >5
+| distinct 
+    TimeGenerated, 
+    TimeProcessed, 
+    ActivityType, 
+    ActionType, 
+    UserPrincipalName, 
+    EventSource, 
+    SourceIPAddress, 
+    SourceIPLocation, 
+    SourceDevice,
+    tostring(UsersInsights),
+    tostring(DevicesInsights),
+    tostring(ActivityInsights),
+    tostring(ActionUncommonlyPerformedbyUser),
+    ISPUncommonlyUsedByUser,
+    CountryUncommonlyConnectedFromByUser,
+    FirstTimeUserConnectedFromDevice,
+    DeviceUncommonlyUsedAmongPeers
