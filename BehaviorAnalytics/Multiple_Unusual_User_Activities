@@ -1,8 +1,8 @@
 BehaviorAnalytics
 | extend ActionUncommonlyPerformedbyUser = ActivityInsights.ActionUncommonlyPerformedByUser
 | where ActionUncommonlyPerformedbyUser == "True"
-| extend AppUncommonlyUsedByUser  = ActivityInsights.AppUncommonlyUsedByUser
-| where AppUncommonlyUsedByUser == "True"
+//| extend AppUncommonlyUsedByUser  = ActivityInsights.AppUncommonlyUsedByUser
+//| where AppUncommonlyUsedByUser == "True"
 | extend ISPUncommonlyUsedByUser = ActivityInsights.ISPUncommonlyUsedByUser
 | where ISPUncommonlyUsedByUser == "True"
 | extend CountryUncommonlyConnectedFromByUser = ActivityInsights.CountryUncommonlyConnectedFromByUser
