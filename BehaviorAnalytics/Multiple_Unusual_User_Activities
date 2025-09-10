@@ -1,9 +1,12 @@
 BehaviorAnalytics
-| evaluate bag_unpack(ActivityInsights)
-| evaluate bag_unpack(UsersInsights)
-//| where ActionUncommonlyPerformedByUser == "True"
+| extend ActionUncommonlyPerformedbyUser = tostring(ActivityInsights.ActionUncommonlyPerformedByUser)
+| where ActionUncommonlyPerformedbyUser == "True"
+| extend ISPUncommonlyUsedByUser = tostring(ActivityInsights.ISPUncommonlyUsedByUser)
 | where ISPUncommonlyUsedByUser == "True"
+| extend CountryUncommonlyConnectedFromByUser = tostring(ActivityInsights.CountryUncommonlyConnectedFromByUser)
 | where CountryUncommonlyConnectedFromByUser == "True"
+| extend FirstTimeUserConnectedFromDevice = tostring(ActivityInsights.FirstTimeUserConnectedFromDevice)
 | where FirstTimeUserConnectedFromDevice == "True"
+| extend DeviceUncommonlyUsedAmongPeers = tostring(ActivityInsights.DeviceUncommonlyUsedAmongPeers)
 | where DeviceUncommonlyUsedAmongPeers == "True"
-| where InvestigationPriority >5
+| where InvestigationPriority > 5
