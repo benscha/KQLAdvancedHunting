@@ -1,0 +1,45 @@
+// Analyze historical login data, calculating the number of unique days an IP address has been seen per user. 
+let OwnIPRangeStart = "88.";
+let IpHistory = AADSignInEventsBeta 
+| where ErrorCode == 0 
+| where Timestamp >= ago(30d) 
+| summarize DaysSeen = dcount(startofday(Timestamp)) by AccountUpn, IPAddress;
+// Get recent MFA-related events from the last 24 hours. 
+let RecentMfaEvents = AuditLogs 
+| where TimeGenerated between (ago(1d) .. now()) 
+| where OperationName in ( "User registered security info", "Register security info", "Add phone authentication method", "StrongAuthenticationMethodChanged" ) 
+| extend InitiatedByJson = parse_json(InitiatedBy) | extend ActorIp = tostring(InitiatedByJson.user.ipAddress), Actor = tostring(InitiatedByJson.user.userPrincipalName) 
+| where ActorIp !startswith (OwnIPRangeStart) and isnotempty(ActorIp) 
+| where AADOperationType != "ServiceApi"
+//use the following line only if Email is not allowed as a 2nd factor
+| where ResultDescription != "User registered Email" ;
+// Join the MFA events with historical login data to assess IP risk.
+RecentMfaEvents
+| join kind=leftouter (
+AADSignInEventsBeta
+| where ErrorCode == 0
+| summarize arg_max(Timestamp, *) by AccountUpn, IPAddress
+| project Timestamp, AccountUpn, IPAddress, Country, ReportId
+) on $left.Actor == $right.AccountUpn
+| join kind=leftouter IpHistory
+on $left.Actor == $right.AccountUpn
+and $left.IPAddress == $right.IPAddress
+| extend DaysSeenBefore = coalesce(DaysSeen, 0)
+| extend IPRiskLevel = case(
+DaysSeenBefore == 0, "High Risk - New IP",
+DaysSeenBefore <= 1, "Seen only once before",
+DaysSeenBefore <= 3, "Seen a few times",
+DaysSeenBefore > 3, "Frequently seen",
+"Unknown"
+)
+//Filter for new IPs only
+| where DaysSeenBefore == 0
+| extend Timestamp = TimeGenerated
+| summarize arg_max(TimeGenerated, *) by OperationName, Actor, ActorIp, IPAddress, DaysSeenBefore, IPRiskLevel, Country, ReportId, ResultDescription
+// join User CreatedDateTime
+| join kind=inner (IdentityInfo 
+                    | summarize arg_max(CreatedDateTime, *) by AccountUpn
+                    | project AccountUpn, CreatedDateTime ) 
+                    on $left.Actor == $right.AccountUpn
+// exclude new Users
+| where CreatedDateTime < ago(60d)
