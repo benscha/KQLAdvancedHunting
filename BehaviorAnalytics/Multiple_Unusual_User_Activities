@@ -1,7 +1,7 @@
 BehaviorAnalytics
 | evaluate bag_unpack(ActivityInsights)
 | evaluate bag_unpack(UsersInsights)
-| where ActionUncommonlyPerformedByUser == "True"
+//| where ActionUncommonlyPerformedByUser == "True"
 | where ISPUncommonlyUsedByUser == "True"
 | where CountryUncommonlyConnectedFromByUser == "True"
 | where FirstTimeUserConnectedFromDevice == "True"
