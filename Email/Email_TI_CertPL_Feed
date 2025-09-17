@@ -1,0 +1,5 @@
+let CertPLDomainList= externaldata (UrlDomain: string) ['https://hole.cert.pl/domains/v2/domains.txt'] with (format='txt')
+| where UrlDomain !startswith "#";
+EmailUrlInfo
+| join kind=inner CertPLDomainList on UrlDomain
+| join EmailEvents on NetworkMessageId
