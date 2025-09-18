@@ -3,3 +3,4 @@ let PhishuntURLs = externaldata (Url: string) ["https://phishunt.io/feed.txt"]
 | where Url !in ("https://www.google.com/chrome/","https://www.microsoft.com/en-us/microsoft-teams/log-in");
 EmailUrlInfo
 | where Url has_any (PhishuntURLs)
+| join EmailEvents on NetworkMessageId
