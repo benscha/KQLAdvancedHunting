@@ -1,8 +1,8 @@
 // Analyze historical login data, calculating the number of unique days an IP address has been seen per user. 
-let OwnIPRangeStart = "xx.xx";
+let OwnIPRangeStart = "147.86";
 let IpHistory = AADSignInEventsBeta 
 | where ErrorCode == 0 
-| where Timestamp >= ago(30d) 
+| where Timestamp between (ago(30d) .. ago(1d))
 | summarize DaysSeen = dcount(startofday(Timestamp)) by AccountUpn, IPAddress;
 // Get recent MFA-related events from the last 24 hours. 
 let RecentMfaEvents = AuditLogs 
@@ -43,3 +43,4 @@ DaysSeenBefore > 3, "Frequently seen",
                     on $left.Actor == $right.AccountUpn
 // exclude new Users
 | where CreatedDateTime < ago(60d)
+| summarize arg_min(TimeGenerated, *) by Actor
