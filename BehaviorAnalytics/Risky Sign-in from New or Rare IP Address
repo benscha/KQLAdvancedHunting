@@ -8,7 +8,7 @@ let RiskySignIns = AADSignInEventsBeta
 | where IsCompliant == 0
 | where IsManaged == 0
 | where RiskLevelAggregated > 1
-| project Timestamp, AccountUpn, Application, IPAddress, RiskLevelAggregated, RiskLevelDuringSignIn, RiskState;
+| project Timestamp, AccountUpn, Application, IPAddress, RiskLevelAggregated, RiskLevelDuringSignIn, RiskState, City, Country;
 // Step 1: Count how often an IP was used per account in the last 29 days
 let HistoricalIPCounts = AADSignInEventsBeta
 | where ErrorCode == 0
@@ -36,6 +36,5 @@ RiskySignIns
 | where IPRiskLevel startswith "High"
 | project Timestamp, AccountUpn, Application, IPAddress, 
           RiskLevelAggregated, RiskLevelDuringSignIn, RiskState, 
-          IPSeenBefore, IPSeenCount, IPRiskLevel
-
+          IPSeenBefore, IPSeenCount, IPRiskLevel, City, Country
 
