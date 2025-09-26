@@ -1,0 +1,41 @@
+let ExcludedApps = pack_array("TestAppTEST1", "TestAppTEST2");
+let RiskySignIns = AADSignInEventsBeta
+| where TimeGenerated > ago(1d)
+| where isnotempty(RiskLevelDuringSignIn) 
+| where Application !in (ExcludedApps)
+| where RiskLevelDuringSignIn >= 50
+| where IsGuestUser == 0
+| where IsCompliant == 0
+| where IsManaged == 0
+| where RiskLevelAggregated > 1
+| project Timestamp, AccountUpn, Application, IPAddress, RiskLevelAggregated, RiskLevelDuringSignIn, RiskState;
+// Step 1: Count how often an IP was used per account in the last 29 days
+let HistoricalIPCounts = AADSignInEventsBeta
+| where ErrorCode == 0
+| where Timestamp >= ago(29d)
+| summarize IPSeenCount = count() by AccountUpn, IPAddress;
+// Step 2: Build the IP list per account
+let HistoricalIPs = AADSignInEventsBeta
+| where ErrorCode == 0
+| where Timestamp >= ago(29d)
+| summarize HistoricalIPs = make_set(IPAddress) by AccountUpn;
+// Step 3: Join with RiskySignIns and Counts
+RiskySignIns
+| join kind=leftouter HistoricalIPs on AccountUpn
+| join kind=leftouter HistoricalIPCounts on AccountUpn, IPAddress
+| extend 
+    IPSeenBefore = iff(isnotempty(IPSeenCount), true, false),
+    IPSeenCount = coalesce(IPSeenCount, 0)
+| extend IPRiskLevel = case(
+        IPSeenBefore == false, "High Risk - New IP",
+        IPSeenBefore == true and IPSeenCount < 3, "Medium Risk - Rare IP",
+        IPSeenBefore == true and IPSeenCount >= 3, "Lower Risk - Frequent IP",
+        "Unknown"
+    )
+// Step 4: Filter for only New IPs. here you can adapt the value
+| where IPRiskLevel startswith "High"
+| project Timestamp, AccountUpn, Application, IPAddress, 
+          RiskLevelAggregated, RiskLevelDuringSignIn, RiskState, 
+          IPSeenBefore, IPSeenCount, IPRiskLevel
+
+
