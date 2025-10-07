@@ -32,3 +32,25 @@ DeviceNetworkEvents
 | extend Domain = extract(@"^(?:https?://)?([^/]+)", 1, RemoteUrl)
 | join kind=inner DOMAINHighConfThreatView on Domain
 ```
+
+if you like you can also use the extended Version of this Query wich detects Risky Signins after the DeviceNetwork Event to the High Confidence Domain.
+
+```KQL
+let DOMAINHighConfThreatView = externaldata (Domain:string) [@"https://threatview.io/Downloads/DOMAIN-High-Confidence-Feed.txt"] with (format="txt", ignoreFirstRecord = false);
+let SuspiciousConnections = DeviceNetworkEvents
+| where isnotempty(RemoteUrl)
+| where RemoteIPType == "Public"
+| where ActionType == "ConnectionSuccess"
+| extend Domain = extract(@"^(?:https?://)?([^/]+)", 1, RemoteUrl)
+| join kind=inner DOMAINHighConfThreatView on Domain
+| project SuspiciousConnections_TimeGenerated=TimeGenerated, InitiatingProcessAccountUpn, Domain;
+AADSignInEventsBeta
+| where isnotempty(RiskLevelDuringSignIn) 
+| where isnotempty(AccountUpn)
+| join kind=inner (
+    SuspiciousConnections
+) on $left.AccountUpn == $right.InitiatingProcessAccountUpn
+| where TimeGenerated > SuspiciousConnections_TimeGenerated
+| project Timestamp, ReportId, AccountUpn, Domain, IPAddress, Country, Application, ConditionalAccessStatus
+```
+
