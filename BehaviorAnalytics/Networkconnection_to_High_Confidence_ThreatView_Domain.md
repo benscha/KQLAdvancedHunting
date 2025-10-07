@@ -43,7 +43,7 @@ let SuspiciousConnections = DeviceNetworkEvents
 | where ActionType == "ConnectionSuccess"
 | extend Domain = extract(@"^(?:https?://)?([^/]+)", 1, RemoteUrl)
 | join kind=inner DOMAINHighConfThreatView on Domain
-| project SuspiciousConnections_TimeGenerated=TimeGenerated, InitiatingProcessAccountUpn, Domain;
+| project SuspiciousConnections_TimeGenerated=TimeGenerated, InitiatingProcessAccountUpn, Domain, DeviceId, DeviceName;
 AADSignInEventsBeta
 | where isnotempty(RiskLevelDuringSignIn) 
 | where isnotempty(AccountUpn)
@@ -51,6 +51,6 @@ AADSignInEventsBeta
     SuspiciousConnections
 ) on $left.AccountUpn == $right.InitiatingProcessAccountUpn
 | where TimeGenerated > SuspiciousConnections_TimeGenerated
-| project Timestamp, ReportId, AccountUpn, Domain, IPAddress, Country, Application, ConditionalAccessStatus
+| project Timestamp, ReportId, AccountObjectId, AccountUpn, Domain, IPAddress, Country, Application, ConditionalAccessStatus, DeviceId, DeviceName
 ```
 
