@@ -20,7 +20,7 @@ Network Connection to High-Confidence URLs
 - **LinkedIn: https://www.linkedin.com/in/benjamin-zulliger/**
 
 #### References
-- https://threatview.io/)
+- https://threatview.io
 
 ## Defender XDR
 ```KQL
