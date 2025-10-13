@@ -8,8 +8,7 @@
 | ---  | --- | --- |
 | T1070.004 | Indicator Removal: File Deletion | https://attack.mitre.org/techniques/T1070/004/ |
 | T1059.001 | Command and Scripting Interpreter: PowerShell | https://attack.mitre.org/techniques/T1059/001/ |
-| TA0005 | Defense Evasion
- | https://attack.mitre.org/tactics/TA0005/ |
+| TA0005 | Defense Evasion  | https://attack.mitre.org/tactics/TA0005/ |
 
 #### Description
 Detects the deletion of IIS log files by common command-line interpreters such as cmd.exe or PowerShell. This activity can be indicative of an adversary attempting to remove forensic evidence after compromising an IIS web server.
