@@ -35,7 +35,8 @@ let Lab539ClickFix=externaldata(Timestamp:datetime, Hostname:string, IP:string, 
 // Netzwerkverbindungen zu Lab539ClickFix IPs mit Device-Informationen
 let Lab539ClickFixNetworkConnections = Lab539ClickFix
 | where Timestamp >ago(2d)
-| join kind=inner DeviceNetworkEvents on $left.IP == $right.RemoteIP
+| join kind=inner ( DeviceNetworkEvents 
+                    | where RemoteIPType == "Public" ) on $left.Hostname == $right.RemoteUrl
 | extend NetworkConnectionTime = TimeGenerated
 | project NetworkConnectionTime, DeviceName, DeviceId, RemoteIP, InitiatingProcessAccountUpn
 | summarize MinConnectionTime = min(NetworkConnectionTime) by DeviceName, InitiatingProcessAccountUpn;
