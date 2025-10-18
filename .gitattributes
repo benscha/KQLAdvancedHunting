@@ -1,3 +1,0 @@
-# Alle .kql-Dateien als KQL markieren
-*.kql linguist-language=Kusto
-*.md linguist-language=Kusto
