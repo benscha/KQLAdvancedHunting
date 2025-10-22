@@ -22,14 +22,15 @@ Detects a single Gmail sender address using multiple distinct display names with
 ## Defender XDR
 ```KQL
 let suspiciousSender = EmailEvents
-| where Timestamp > ago(1h)
+| where SenderFromAddress endswith "gmail.com"
+| where Timestamp > ago(2h)
+| where EmailDirection == "Inbound"
 | summarize 
     DistinctDisplayNames = dcount(SenderDisplayName),
     DisplayNames = make_set(SenderDisplayName)
 by SenderFromAddress
 | where DistinctDisplayNames > 1
-| order by DistinctDisplayNames desc
-| where SenderFromAddress endswith "gmail.com";
+| order by DistinctDisplayNames desc;
 EmailEvents
 | join kind=inner (
     suspiciousSender
