@@ -1,4 +1,4 @@
-# *Suspicious IIS Log Deletion by Command-Line Interpreters
+# *Suspicious IIS Log Deletion by Command-Line Interpreters*
 
 ## Query Information
 
