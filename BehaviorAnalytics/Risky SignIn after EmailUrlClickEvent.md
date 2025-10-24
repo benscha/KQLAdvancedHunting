@@ -24,7 +24,7 @@ This rule detects a highly suspicious sequence of events: a user clicking on a U
 ```KQL
 let loopback = 1h;
 //Add your IPRange to minimize the Results
-let OwnIPRange = "147.86.";
+let OwnIPRange = "xx.xx.";
 let UserClicks = UrlClickEvents
 | where Timestamp > ago(loopback)
 | where IPAddress !startswith (OwnIPRange)
