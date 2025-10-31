@@ -13,6 +13,8 @@
 
 This rule detects suspicious, obfuscated PowerShell commands by analyzing the command line for long string literals with low character diversity and high frequency of a single character. It extracts strings enclosed in single quotes, double quotes, or backticks, and then calculates the ratio of distinct characters to total length and the ratio of the most frequent character's count to total length. If these ratios fall below and above certain thresholds, respectively, the command is flagged as suspicious.
 
+I would appreciate any feedback or suggestions for improvement. This query is intentionally flagged as EXPERIMENTAL.
+
 #### Author <Optional>
 - **Name: Benjamin Zulliger**
 - **Github: https://github.com/benscha/KQLAdvancedHunting**
