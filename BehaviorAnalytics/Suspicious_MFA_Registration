@@ -1,5 +1,5 @@
 // Analyze historical login data, calculating the number of unique days an IP address has been seen per user. 
-let OwnIPRangeStart = "147.86";
+let OwnIPRangeStart = "xx.xx";
 let IpHistory = AADSignInEventsBeta 
 | where ErrorCode == 0 
 | where Timestamp between (ago(30d) .. ago(1d))
