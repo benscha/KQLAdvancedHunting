@@ -2,7 +2,7 @@
 //Define your Organisation IP Range
 let OrgCIDRIPRange = "0.0.0.0/X";
 //Define excluded Countries
-let ExcludedCountries = dynamic(["Switzerland"]);
+let ExcludedCountries = dynamic(["NERDBeerLand"]);
 let InboxRuleCreated = OfficeActivity
 | where Operation in ("UpdateInboxRules", "New-InboxRule", "Set-InboxRule")
 | mv-expand parse_json(OperationProperties)
