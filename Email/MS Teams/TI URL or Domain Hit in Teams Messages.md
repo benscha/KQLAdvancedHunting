@@ -51,4 +51,5 @@ let DomainHits = MessageUrlInfo
 | join IOCDomain on $left.UrlDomain == $right.IOCValue;
 URLHits
 | union DomainHits
+| join kind=inner MessageEvents on TeamsMessageId
 ```
