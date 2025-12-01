@@ -18,7 +18,7 @@ This rule detects suspicious scheduled tasks that execute binaries from the AppD
 - **LinkedIn: https://www.linkedin.com/in/benjamin-zulliger/**
 
 #### References
-- Inspired by https://www.linkedin.com/posts/mauricefielenbach_threatintel-cybersecurity-malwareanalysis-activity-7392988024168656896-Ey4C?utm_source=share&utm_medium=member_desktop&rcm=ACoAAA3PxAIBcfr6M0unx3xMtHTyCNuehMi3uNQ
+- Inspired by https://www.linkedin.com/posts/mauricefielenbach_threatintel-cybersecurity-malwareanalysis-activity-7392988024168656896-Ey4C
 
 
 ## Defender XDR
