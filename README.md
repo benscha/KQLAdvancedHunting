@@ -33,3 +33,4 @@ Maintained by Benjamin Zulliger
 
 Follow me on LinkedIn: https://www.linkedin.com/in/benjamin-zulliger/?follow
 </div>
+<meta name="google-site-verification" content="52v0aI7FA_EOkBBlGQa4OvTrDwqy6pwiwOdzpmPNVFE" />
