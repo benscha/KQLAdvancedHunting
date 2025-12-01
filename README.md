@@ -3,7 +3,7 @@
 
 Welcome to **KQLAdvancedHunting**!  
 
-![KQLNinja](https://github.com/e5815dba-6d30-4e94-954f-75fc38642a25
+![KQLNinja](https://raw.githubusercontent.com/benscha/KQLAdvancedHunting/8f6c675f8347b99f236c23a5ef4d491375201161/KQLNinja.png
 
 This repository contains a curated collection of **KQL (Kusto Query Language) queries** for **Microsoft Defender Advanced Hunting**, designed to help security analysts and IT administrators improve threat detection and incident response.
 
