@@ -24,4 +24,5 @@ This repository contains a curated collection of **KQL (Kusto Query Language) qu
 
 ## 🔗 Connect with Me
 Maintained by Benjamin Zulliger
+
 Follow me on LinkedIn: https://www.linkedin.com/in/benjamin-zulliger/?follow
