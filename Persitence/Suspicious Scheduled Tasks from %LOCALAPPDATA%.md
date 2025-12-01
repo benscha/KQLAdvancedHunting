@@ -23,7 +23,7 @@ This rule detects suspicious scheduled tasks that execute binaries from the AppD
 
 ## Defender XDR
 ```KQL
-//Whitelisted FolderPaths
+//Whitelisted Paths
 let WhitelistedPaths = dynamic([
     "\\AppData\\Local\\Chrome\\User Data",
     "\\AppData\\Local\\Microsoft\\Teams\\current",
