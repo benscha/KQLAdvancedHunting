@@ -1,0 +1,40 @@
+# *OAuth App Permissions Evaluation*
+
+## Query Information
+
+#### MITRE ATT&CK Technique(s)
+
+| Technique ID | Title    | Link    |
+| ---  | --- | --- |
+| T1528 | Abuse of OAuth Mechanisms | https://attack.mitre.org/techniques/T1528/ |
+
+
+#### Description
+This KQL query identifies all activated OAuth applications in the Microsoft 365 environment and analyses their permissions. It shows how often certain permissions occur in the environment and lists the applications with their publisher information, permission types and privilege levels. The goal is to identify potentially risky or overly privileged OAuth apps that could be exploited for attacks such as data exfiltration or privilege escalation.
+
+#### Author <Optional>
+- **Name: Benjamin Zulliger**
+- **Github: https://github.com/benscha/KQLAdvancedHunting**
+- **LinkedIn: https://www.linkedin.com/in/benjamin-zulliger/**
+
+#### References
+
+## Defender XDR
+```KQL
+let PermissionCount = OAuthAppInfo 
+| where AppStatus == "Enabled"
+| mv-expand Permissions
+| evaluate bag_unpack(Permissions, columnsConflict='keep_source')
+| summarize arg_max(TimeGenerated, *) by OAuthAppId, PermissionValue
+| summarize Num_PermissionofApp=count() by PermissionValue
+| sort by Num_PermissionofApp desc;
+OAuthAppInfo 
+| where AppStatus == "Enabled"
+| mv-expand Permissions
+| evaluate bag_unpack(Permissions, columnsConflict='keep_source')
+| summarize arg_max(TimeGenerated, *) by OAuthAppId, PermissionValue
+| extend Publisher=VerifiedPublisher.displayName
+| join PermissionCount on PermissionValue
+| project OAuthAppId, AppName, Publisher, AddedOnTime, LastModifiedTime, ConsentedUsersCount, PermissionType, PermissionValue, PrivilegeLevel, Num_PermissionofApp, AppOrigin
+
+```
