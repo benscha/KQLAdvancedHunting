@@ -29,22 +29,7 @@ let WhitelistedPaths = dynamic([
     "\\AppData\\Local\\Microsoft\\Teams\\current",
     "\\AppData\\Local\\ZoomMeetings\\bin",
     "\\AppData\\Local\\Google\\GoogleUpdater\\",
-    "\\AppData\\Local\\Opera\\autoupdate\\opera_autoupdate.exe",
-    "\\AppData\\Local\\Microsoft\\OneDrive\\OneDriveStandaloneUpdater.exe",
-    "\\AppData\\Local\\Dropbox\\DropboxUpdater\\",
-    "\\AppData\\Local\\Mozilla Firefox\\firefox.exe",
-    "\\AppData\\Local\\GoToMeeting\\",
-    "\\AppData\\Local\\Mozilla Firefox\\default-browser-agent.exe",
-    "\\AppData\\Local\\BraveSoftware\\Update\\BraveUpdate.exe",
-    "\\AppData\\Local\\MEGAsync\\MEGAupdater.exe",
-    "AppData\\Local\\VLC Plus Player Updater\\Updater.exe",
-    "\\AppData\\Local\\ConvertMate\\UpdateRetreiver.exe",
-    "AppData\\Local\\Programs\\Syncthing\\stctl.exe",
-    "\\AppData\\Local\\Programs\\Opera Air\\autoupdate\\opera_autoupdate.exe",
-    "\\AppData\\Local\\PDFClick\\PDFClickUpdater.exe",
-    "\\AppData\\Local\\AVAST Software\\Browser\\Application\\AvastBrowser.exe",
-    "\\AppData\\Local\\Vivaldi\\Application\\update_notifier.exe",
-    "\\AppData\\Local\\anaconda3\\envs\\EMMA\\python.exe"
+    "\\AppData\\Local\\Opera\\autoupdate\\opera_autoupdate.exe"
 ]);
 DeviceProcessEvents
 | where Timestamp > ago(7d)
