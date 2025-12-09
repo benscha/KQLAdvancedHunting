@@ -38,7 +38,7 @@ let suspiciousProcesses = DeviceProcessEvents
 suspiciousProcesses
 | join kind=leftouter (
     DeviceNetworkEvents
-    | project NetworkTimestamp = Timestamp, DeviceId, InitiatingProcessId,RemoteIP, RemotePort, RemoteUrl, Protocol, ActionType, LocalIP, LocalPort, RemoteIPType
+    | project NetworkTimestamp = Timestamp, DeviceId, InitiatingProcessId,RemoteIP, RemotePort, RemoteUrl, Protocol, ActionType, LocalIP, LocalPort, RemoteIPType, ReportId
 ) on DeviceId, $left.ProcessId == $right.InitiatingProcessId
 | where isnotempty( RemoteIP) and RemoteIPType == "Public"
 | where NetworkTimestamp between (TimeWindowStart .. TimeWindowEnd)
