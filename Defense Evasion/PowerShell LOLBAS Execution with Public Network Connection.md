@@ -36,7 +36,7 @@ let suspiciousProcesses = DeviceProcessEvents
 | join kind=inner (lolbas) on $left.InitiatingProcessFileName == $right.Name
     | project Timestamp, DeviceId, DeviceName, ProcessId, FileName, ProcessCommandLine, InitiatingProcessFileName, InitiatingProcessCommandLine, AccountName, LOLBAS_Category = Category, LOLBAS_Description = Description, TimeWindowStart = Timestamp - timeWindow, TimeWindowEnd = Timestamp + timeWindow, SHA1;
 suspiciousProcesses
-| join kind=inner (
+| join kind=letfouter (
     DeviceNetworkEvents
     | project NetworkTimestamp = Timestamp, DeviceId, InitiatingProcessId,RemoteIP, RemotePort, RemoteUrl, Protocol, ActionType, LocalIP, LocalPort, RemoteIPType, ReportId
 ) on DeviceId, $left.ProcessId == $right.InitiatingProcessId
