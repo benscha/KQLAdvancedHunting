@@ -26,8 +26,7 @@ let UnscannedDevices = DeviceEvents
 | where TimeGenerated >ago(1d)
 | where ActionType == "AntivirusScanCompleted"
 | extend ParsedAdditionalFields = parse_json(AdditionalFields)
-| extend
-    ScanTypeIndex = tostring(ParsedAdditionalFields.ScanTypeIndex)
+| extend ScanTypeIndex = tostring(ParsedAdditionalFields.ScanTypeIndex)
 | project Timestamp,DeviceId, DeviceName, ScanTypeIndex
 | summarize count() by DeviceName, ScanTypeIndex
 | join kind=rightanti DeviceInfo on DeviceName
