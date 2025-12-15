@@ -20,6 +20,8 @@ This KQL query finds devices with failed AV Scans, vulnerabilities and related i
 #### References
 
 ## Defender XDR
+
+### Query Combination Devices with no AV Scans, Vulnerabilities and related Incidents
 ```KQL
 let AlertTimeframe = 30d;
 let UnscannedDevices = DeviceEvents
@@ -40,5 +42,25 @@ let AlertCount= AlertEvidence
 DeviceTvmSoftwareVulnerabilities
 | summarize NumCVE=count() by DeviceId
 | join AlertCount on DeviceId
+| join kind=inner UnscannedDevices on DeviceId
+```
+
+### Query Combination Devices with no AV Scans and Vulnerabilities
+```KQL
+let AlertTimeframe = 30d;
+let UnscannedDevices = DeviceEvents
+| where TimeGenerated >ago(1d)
+| where ActionType == "AntivirusScanCompleted"
+| extend ParsedAdditionalFields = parse_json(AdditionalFields)
+| extend
+    ScanTypeIndex = tostring(ParsedAdditionalFields.ScanTypeIndex)
+| project Timestamp,DeviceId, DeviceName, ScanTypeIndex
+| summarize count() by DeviceName, ScanTypeIndex
+| join kind=rightanti DeviceInfo on DeviceName
+| where OnboardingStatus == "Onboarded"
+| summarize arg_max(Timestamp, *) by DeviceName
+| where OSPlatform != "iOS";
+DeviceTvmSoftwareVulnerabilities
+| summarize NumCVE=count() by DeviceId
 | join kind=inner UnscannedDevices on DeviceId
 ```
