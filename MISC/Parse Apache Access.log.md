@@ -1,14 +1,6 @@
 # *Parse Apache Access.log*
 
 ## Query Information
-
-#### MITRE ATT&CK Technique(s)
-
-| Technique ID | Title    | Link    |
-| ---  | --- | --- |
-
-
-
 #### Description
 This KQL query parses raw Apache access.log entries stored in the accesslog table. It uses regular expressions to extract key fields from each log line, such as ClientIP, Ident, User, Timestamp, HTTP Method, URL, Protocol, Status Code, Bytes Sent, Referer, and User-Agent. After extracting these values, the query removes the original raw data column and presents the parsed fields in a structured table format for easier analysis.
 #### Author <Optional>
