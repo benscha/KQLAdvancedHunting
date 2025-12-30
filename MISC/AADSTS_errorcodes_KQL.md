@@ -4,7 +4,7 @@
 
 #### Description
 
-This KQL query enriches Azure AD sign-in events with human-readable AADSTS error descriptions by looking up error codes from an external CSV file.
+This KQL query enriches Azure AD sign-in events with human-readable AADSTS error descriptions by looking up error codes from an external CSV (https://github.com/benscha/KQLAdvancedHunting/blob/main/MISC/AADSTS_errorcodes.csv) file.
 
 #### Author <Optional>
 - **Name: Benjamin Zulliger**
