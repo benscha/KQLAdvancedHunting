@@ -45,6 +45,7 @@ SecurityEvent
 | summarize DataBag = make_bag(pack(FieldName, FieldValue)) by TimeGenerated, Computer, EventID, _ResourceId
 | evaluate bag_unpack(DataBag)
 | extend SubjectAlternativeName = tostring(SubjectAlternativeName)
+| extend RequesterMachine = extract(@"Machine:\s*([A-Za-z0-9\-\_]+)", 1, RequestClientInfo)
 | extend PrincipalName = extract(@"Principal Name=([^ ]+)", 1, SubjectAlternativeName)
 | extend HasSTU = iff(SubjectAlternativeName has "URL=ID:STU", true, false)
 | project-away SubjectAlternativeName, _ResourceId, DCOMorRPC, RequestCSPProvider
