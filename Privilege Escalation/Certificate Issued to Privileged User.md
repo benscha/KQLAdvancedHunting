@@ -19,7 +19,7 @@ This rule detects when a certificate is issued to a privileged user. It identifi
 #### References
 - https://angelica.gitbook.io/hacktricks/windows-hardening/active-directory-methodology/ad-certificates/domain-escalation
 
-## Defender XDR
+## Sentinel
 ```KQL
 let AdminGroups = dynamic([
     "Domain Admins",
@@ -49,5 +49,45 @@ SecurityEvent
 | extend PrincipalName = extract(@"Principal Name=([^ ]+)", 1, SubjectAlternativeName)
 | extend HasSTU = iff(SubjectAlternativeName has "URL=ID:STU", true, false)
 | project-away SubjectAlternativeName, _ResourceId, DCOMorRPC, RequestCSPProvider
+| join kind=inner PrivUsers on PrincipalName
+```
+
+if you like to create a Detection Rule you need to use this Query:
+
+```KQL
+// Define high privileged AD groups
+let AdminGroups = dynamic([
+"Domain Admins",
+"Enterprise Admins",
+"Administrators",
+"Schema Admins",
+"Account Operators",
+"Backup Operators",
+"Server Operators"
+]);
+// Collect privileged users based on group membership
+let PrivUsers =
+IdentityInfo
+| where Type == "User"
+| mv-apply GroupMembership on (where GroupMembership in~ (AdminGroups))
+| project PrincipalName = tostring(AccountUpn);
+// Parse certificate request events (Event ID 4886)
+SecurityEvent
+| where EventID == 4886
+| extend XmlData = parse_xml(EventData)
+| mv-expand DataNode = XmlData.EventData.Data
+| extend FieldName = tostring(DataNode['@Name']), FieldValue = tostring(DataNode['#text'])
+| summarize
+    SubjectAlternativeName = anyif(FieldValue, FieldName == "SubjectAlternativeName"),
+    RequestClientInfo = anyif(FieldValue, FieldName == "RequestClientInfo"),
+    TimeGenerated = any(TimeGenerated),
+    Computer = any(Computer),
+    EventID = any(EventID)
+  by _ResourceId
+| extend SubjectAlternativeName = tostring(SubjectAlternativeName)
+| extend RequesterMachine = extract(@"Machine:\s*([A-Za-z0-9\-\_]+)", 1, RequestClientInfo)
+| extend PrincipalName = extract(@"Principal Name=([^ ]+)", 1, SubjectAlternativeName)
+| extend HasSTU = iff(SubjectAlternativeName has "URL=ID:STU", true, false)
+| project-away SubjectAlternativeName, _ResourceId
 | join kind=inner PrivUsers on PrincipalName
 ```
