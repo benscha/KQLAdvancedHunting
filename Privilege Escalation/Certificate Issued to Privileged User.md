@@ -22,7 +22,7 @@ This rule detects when a certificate is issued to a privileged user. It identifi
 ## Sentinel
 
 ```KQL
-// 1. Create a list of privileged users based on AD group membership
+// Create a list of privileged users based on AD group membership
 let AdminGroups = dynamic([
     "Domain Admins",
     "Enterprise Admins",
@@ -37,7 +37,7 @@ let PrivUsers =
     | where Type == "User"
     | mv-apply GroupMembership on (where GroupMembership in~ (AdminGroups))
     | summarize by PrincipalName = tostring(AccountUpn);
-// 2. Process Certificate Request events (Event ID 4886)
+// Process Certificate Request events (Event ID 4886)
 SecurityEvent
 | where EventID == 4886
 | extend XmlData = parse_xml(EventData)
@@ -53,10 +53,10 @@ SecurityEvent
 | extend RequesterMachine = extract(@"Machine:\s*([A-Za-z0-9\-\_]+)", 1, RequestClientInfo)
 | extend PrincipalName = extract(@"Principal Name=([^ ]+)", 1, SubjectAlternativeName)
 | extend HasSTU = iff(SubjectAlternativeName has "URL=ID:STU", true, false)
-// 3. Set mandatory fields for the Custom Detection Rule (Timestamp and ReportId)
+// Set mandatory fields for the Custom Detection Rule (Timestamp and ReportId)
 | extend Timestamp = TimeGenerated
 | extend ReportId = tostring(new_guid())
-// 4. Join with the privileged user list to identify high-risk requests
+// Join with the privileged user list to identify high-risk requests
 | join kind=inner PrivUsers on PrincipalName
 | project Timestamp, ReportId, PrincipalName, Computer, RequesterMachine, HasSTU, RequestClientInfo
 ```
