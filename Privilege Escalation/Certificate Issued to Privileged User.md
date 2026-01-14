@@ -30,20 +30,21 @@ let AdminGroups = dynamic([
     "Schema Admins",
     "Account Operators",
     "Backup Operators",
-    "Server Operators"
+    "Server Operators",
+    "alle_csg"
 ]);
 let PrivUsers =
     IdentityInfo
     | where Type == "User"
     | mv-apply GroupMembership on (where GroupMembership in~ (AdminGroups))
     | summarize by PrincipalName = tostring(AccountUpn);
-// Process Certificate Request events (Event ID 4886)
+// Process certificate request events (Event ID 4886)
 SecurityEvent
 | where EventID == 4886
 | extend XmlData = parse_xml(EventData)
 | mv-expand DataNode = XmlData.EventData.Data
 | extend FieldName = tostring(DataNode['@Name']), FieldValue = tostring(DataNode['#text'])
-// Group by ResourceId and TimeGenerated to extract specific fields from the XML nodes
+// Group by ResourceId and TimeGenerated to extract specific fields from XML nodes
 | summarize
     SubjectAlternativeName = anyif(FieldValue, FieldName == "SubjectAlternativeName"),
     RequestClientInfo = anyif(FieldValue, FieldName == "RequestClientInfo"),
@@ -53,10 +54,15 @@ SecurityEvent
 | extend RequesterMachine = extract(@"Machine:\s*([A-Za-z0-9\-\_]+)", 1, RequestClientInfo)
 | extend PrincipalName = extract(@"Principal Name=([^ ]+)", 1, SubjectAlternativeName)
 | extend HasSTU = iff(SubjectAlternativeName has "URL=ID:STU", true, false)
-// Set mandatory fields for the Custom Detection Rule (Timestamp and ReportId)
+// Set mandatory fields for the Custom Detection Rule
 | extend Timestamp = TimeGenerated
 | extend ReportId = tostring(new_guid())
-// Join with the privileged user list to identify high-risk requests
+// Cross-reference with the privileged user list
 | join kind=inner PrivUsers on PrincipalName
-| project Timestamp, ReportId, PrincipalName, Computer, RequesterMachine, HasSTU, RequestClientInfo
-```
+// Join with DeviceInfo to enrich with machine context using a normalized join key
+| extend JoinKey = tolower(RequesterMachine)
+| join kind=leftouter (
+    DeviceInfo 
+    | extend DeviceNameLower = tolower(DeviceName)
+    | summarize arg_max(Timestamp, *) by DeviceNameLower 
+) on $left.JoinKey == $right.DeviceNameLower```
