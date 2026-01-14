@@ -20,7 +20,9 @@ This rule detects when a certificate is issued to a privileged user. It identifi
 - https://angelica.gitbook.io/hacktricks/windows-hardening/active-directory-methodology/ad-certificates/domain-escalation
 
 ## Sentinel
+
 ```KQL
+// 1. Create a list of privileged users based on AD group membership
 let AdminGroups = dynamic([
     "Domain Admins",
     "Enterprise Admins",
@@ -30,64 +32,31 @@ let AdminGroups = dynamic([
     "Backup Operators",
     "Server Operators"
 ]);
-let PrivUsers = IdentityInfo
-//| where TimeGenerated > ago(7d)
-| where Type == "User"
-| mv-apply GroupMembership on (
-    where GroupMembership in~ (AdminGroups)
-)
-| project PrincipalName = tostring(AccountUpn);
-SecurityEvent
-| where EventID == "4886"
-| extend XmlData = parse_xml(EventData)
-| mv-expand DataNode = XmlData.EventData.Data
-| extend FieldName = tostring(DataNode['@Name']), FieldValue = tostring(DataNode['#text'])
-| summarize DataBag = make_bag(pack(FieldName, FieldValue)) by TimeGenerated, Computer, EventID, _ResourceId
-| evaluate bag_unpack(DataBag)
-| extend SubjectAlternativeName = tostring(SubjectAlternativeName)
-| extend RequesterMachine = extract(@"Machine:\s*([A-Za-z0-9\-\_]+)", 1, RequestClientInfo)
-| extend PrincipalName = extract(@"Principal Name=([^ ]+)", 1, SubjectAlternativeName)
-| extend HasSTU = iff(SubjectAlternativeName has "URL=ID:STU", true, false)
-| project-away SubjectAlternativeName, _ResourceId, DCOMorRPC, RequestCSPProvider
-| join kind=inner PrivUsers on PrincipalName
-```
-
-if you like to create a Detection Rule you need to use this Query:
-
-```KQL
-// Define high privileged AD groups
-let AdminGroups = dynamic([
-"Domain Admins",
-"Enterprise Admins",
-"Administrators",
-"Schema Admins",
-"Account Operators",
-"Backup Operators",
-"Server Operators"
-]);
-// Collect privileged users based on group membership
 let PrivUsers =
-IdentityInfo
-| where Type == "User"
-| mv-apply GroupMembership on (where GroupMembership in~ (AdminGroups))
-| project PrincipalName = tostring(AccountUpn);
-// Parse certificate request events (Event ID 4886)
+    IdentityInfo
+    | where Type == "User"
+    | mv-apply GroupMembership on (where GroupMembership in~ (AdminGroups))
+    | summarize by PrincipalName = tostring(AccountUpn);
+// 2. Process Certificate Request events (Event ID 4886)
 SecurityEvent
 | where EventID == 4886
 | extend XmlData = parse_xml(EventData)
 | mv-expand DataNode = XmlData.EventData.Data
 | extend FieldName = tostring(DataNode['@Name']), FieldValue = tostring(DataNode['#text'])
+// Group by ResourceId and TimeGenerated to extract specific fields from the XML nodes
 | summarize
     SubjectAlternativeName = anyif(FieldValue, FieldName == "SubjectAlternativeName"),
     RequestClientInfo = anyif(FieldValue, FieldName == "RequestClientInfo"),
-    TimeGenerated = any(TimeGenerated),
-    Computer = any(Computer),
-    EventID = any(EventID)
-  by _ResourceId
+    Computer = any(Computer)
+  by _ResourceId, TimeGenerated
 | extend SubjectAlternativeName = tostring(SubjectAlternativeName)
 | extend RequesterMachine = extract(@"Machine:\s*([A-Za-z0-9\-\_]+)", 1, RequestClientInfo)
 | extend PrincipalName = extract(@"Principal Name=([^ ]+)", 1, SubjectAlternativeName)
 | extend HasSTU = iff(SubjectAlternativeName has "URL=ID:STU", true, false)
-| project-away SubjectAlternativeName, _ResourceId
+// 3. Set mandatory fields for the Custom Detection Rule (Timestamp and ReportId)
+| extend Timestamp = TimeGenerated
+| extend ReportId = tostring(new_guid())
+// 4. Join with the privileged user list to identify high-risk requests
 | join kind=inner PrivUsers on PrincipalName
+| project Timestamp, ReportId, PrincipalName, Computer, RequesterMachine, HasSTU, RequestClientInfo
 ```
