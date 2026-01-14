@@ -30,8 +30,7 @@ let AdminGroups = dynamic([
     "Schema Admins",
     "Account Operators",
     "Backup Operators",
-    "Server Operators",
-    "alle_csg"
+    "Server Operators"
 ]);
 let PrivUsers =
     IdentityInfo
