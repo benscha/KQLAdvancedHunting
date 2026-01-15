@@ -64,4 +64,4 @@ SecurityEvent
     DeviceInfo 
     | extend DeviceNameLower = tolower(DeviceName)
     | summarize arg_max(Timestamp, *) by DeviceNameLower 
-) on $left.JoinKey == $right.DeviceNameLower```
+) on $left.JoinKey == $right.DeviceNameLower
