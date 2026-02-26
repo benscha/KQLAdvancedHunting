@@ -1,5 +1,5 @@
 
-# KQL Advanced Hunting Queries for Microsoft Defender
+# KQL Advanced Hunting Queries for Microsoft Defender and Sentinel
 
 <div align="center">
   <img src="https://raw.githubusercontent.com/benscha/KQLAdvancedHunting/main/KQLNinja.png" alt="KQLNinja" width="300"/></div>
