@@ -21,7 +21,7 @@ This query identifies users exhibiting unusual authentication behavior by combin
 ## Defender XDR
 ```KQL
 let ExludedApps = dynamic(["app-ext-jamfconnect-p"]);
-let EnterpriseIPRange = "147.86.0.0/16" ;
+let EnterpriseIPRange = "0.0.0.0/16" ;
 let LookbackStart = ago(30d);
 let LookbackEnd = ago(1d);
 let HistoricalSignins = SigninLogs
