@@ -20,57 +20,49 @@ This query identifies users exhibiting unusual authentication behavior by combin
 
 ## Defender XDR
 ```KQL
-let ExcludedOS = datatable( OperatingSystem: string) ["iOS", "Android"];
-let CorporateIPRange   = "xx.xx.";
-// List of new Device Registrations
-let DeviceRegistration = AuditLogs
-| where TimeGenerated >ago(2h)
-| where Category == "Device"
-| where OperationName in ("Register device")
-| extend Additional = todynamic(AdditionalDetails)
-| mv-expand Additional
-| extend DetailKey = tostring(Additional.key), 
-         DetailValue = tostring(Additional.value)
-| where DetailKey == "Device OS"
-| project TimeGenerated,
-          OperationName,
-          InitiatedBy = tostring(InitiatedBy.user.displayName),
-          AccountUpn = tostring(InitiatedBy.user.userPrincipalName),
-          TargetDevice = tostring(TargetResources[0].displayName),
-          DeviceId = tostring(TargetResources[0].id),
-          Result = tostring(Result),
-          IPAddress = tostring(InitiatedBy.user.ipAddress),
-          OperatingSystem = DetailValue
-| where OperatingSystem !in (ExcludedOS)
-| where isnotempty( AccountUpn)
-| sort by TimeGenerated desc
-| where IPAddress !startswith (CorporateIPRange)
-| summarize arg_max(TimeGenerated, *) by AccountUpn
-| project TimeGenerated, AccountUpn, TargetDevice, IPAddress, OperatingSystem;
-let HistoricalIPCounts = AADSignInEventsBeta
-| where ErrorCode == 0
-| where Timestamp >= ago(29d)
-| summarize IPSeenCount = count() by AccountUpn, IPAddress;
-// Build the IP list per account
-let HistoricalIPs = AADSignInEventsBeta
-| where ErrorCode == 0
-| where Timestamp >= ago(29d)
-| summarize HistoricalIPs = make_set(IPAddress) by AccountUpn;
-// Join with RiskySignIns and Counts
-DeviceRegistration
-| join kind=leftouter HistoricalIPs on AccountUpn
-| join kind=leftouter HistoricalIPCounts on AccountUpn, IPAddress
-| extend 
-    IPSeenBefore = iff(isnotempty(IPSeenCount), true, false),
-    IPSeenCount = coalesce(IPSeenCount, 0)
-| extend IPRiskLevel = case(
-        IPSeenBefore == false, "High Risk - New IP",
-        IPSeenBefore == true and IPSeenCount < 3, "Medium Risk - Rare IP",
-        IPSeenBefore == true and IPSeenCount >= 3, "Lower Risk - Frequent IP",
-        "Unknown"
-    )
-// Filter for only New IPs. here you can adapt the value
-| where IPRiskLevel startswith "High"
-| join kind=leftouter ( AADSignInEventsBeta
-        | summarize arg_max(TimeGenerated, DeviceName, RiskLevelDuringSignIn, Country, City) by AccountUpn, IPAddress ) on AccountUpn, IPAddress
+let ExludedApps = dynamic(["app-ext-jamfconnect-p"]);
+let EnterpriseIPRange = "147.86.0.0/16" ;
+let LookbackStart = ago(30d);
+let LookbackEnd = ago(1d);
+let HistoricalSignins = SigninLogs
+| where ResultType == 0
+| where TimeGenerated >= LookbackStart and TimeGenerated < LookbackEnd
+| extend operatingSystem = tostring(DeviceDetail.operatingSystem)
+| summarize HistoricalIPSeenCount = count(), HistoricalUserAgents = make_set(UserAgent), HistoricalOperatingSystems = make_set(operatingSystem) by UserPrincipalName, IPAddress;
+BehaviorAnalytics
+| where isnotempty(UserPrincipalName)
+| where ActionType !contains "Failed"
+| where ActivityType !contains "Failed"
+| where not(ipv4_is_in_range(SourceIPAddress, EnterpriseIPRange))
+| where InvestigationPriority >= 3
+| project Timestamp=TimeGenerated, UserPrincipalName, SourceIPAddress, InvestigationPriority
+| join kind=inner (
+    SigninLogs
+    | where ResultType == 0
+    | where UserType !in ("Guest")
+    | where AppDisplayName !in (ExludedApps)
+    | extend operatingSystem = tostring(DeviceDetail.operatingSystem), browser = tostring(DeviceDetail.browser), isManaged = tostring(DeviceDetail.isManaged)
+    | where isManaged == "false"
+    | where RiskLevelDuringSignIn != "none"
+    | project TimeGenerated, UserPrincipalName, SigninIPAddress = IPAddress, AppDisplayName, RiskLevelDuringSignIn, operatingSystem, browser, isManaged, UserAgent
+) on UserPrincipalName
+| join kind=leftouter (
+    HistoricalSignins
+) on UserPrincipalName, $left.SigninIPAddress == $right.IPAddress
+| project-away UserPrincipalName1, UserPrincipalName2
+| extend IPSeenBefore = iff(isnotempty(HistoricalIPSeenCount), true, false)
+| extend UserAgentChanged = iff(IPSeenBefore and isnotempty(HistoricalUserAgents) and not(set_has_element(HistoricalUserAgents, UserAgent)), true, false)
+| extend OperatingSystemChanged = iff(IPSeenBefore and isnotempty(HistoricalOperatingSystems) and not(set_has_element(HistoricalOperatingSystems, operatingSystem)), true, false)
+| extend IPUsageRisk = case(
+    IPSeenBefore == false, "High - new IP for this user",
+    HistoricalIPSeenCount < 3, "Medium - rare IP for this user",
+    HistoricalIPSeenCount >= 3, "Low - frequently used IP",
+    "Unknown"
+)
+| summarize arg_max(TimeGenerated, *) by UserPrincipalName, UserAgent
+| where IPSeenBefore == false and ( UserAgentChanged == true or OperatingSystemChanged == true) 
+| join kind=leftouter( 
+    IdentityInfo 
+    | project AccountObjectId, AccountUpn, ReportId )
+    on $left.UserPrincipalName == $right.AccountUpn
 ```
