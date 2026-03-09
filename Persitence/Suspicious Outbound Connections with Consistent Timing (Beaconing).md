@@ -39,7 +39,8 @@ DeviceNetworkEvents
 | where isnotempty(RemoteIP) and RemoteIPType == "Public"
 | where RemoteIP !in (WhitelistedIPs)
 | where not(RemoteUrl has_any (WhitelistedDomains))
-| project TimeGenerated, DeviceId, RemoteIP, RemoteUrl, RemotePort, InitiatingProcessFileName, InitiatingProcessCommandLine, InitiatingProcessSHA256
+// ReportId zum Project hinzugefügt
+| project TimeGenerated, DeviceId, RemoteIP, RemoteUrl, RemotePort, InitiatingProcessFileName, InitiatingProcessCommandLine, InitiatingProcessSHA256, ReportId
 | sort by DeviceId, RemoteIP, TimeGenerated asc
 | serialize
 | extend PrevTime = prev(TimeGenerated), PrevDeviceId = prev(DeviceId), PrevRemoteIP = prev(RemoteIP)
@@ -55,20 +56,20 @@ DeviceNetworkEvents
     LastSeen = max(TimeGenerated),
     ProcessName = any(InitiatingProcessFileName),
     SHA256 = any(InitiatingProcessSHA256),
-    CommandLine = any(InitiatingProcessCommandLine)
+    CommandLine = any(InitiatingProcessCommandLine),
+    // Wir nehmen die ReportId des letzten Events für Verknüpfungen/Alerts
+    ReportId = arg_max(TimeGenerated, ReportId)[1]
     by DeviceId, RemoteIP, RemoteUrl, RemotePort
 | where EventCount >= MinEvents
 | where StdDevDelta < (AvgDelta * 0.2)
-// Logic: Tag Browsers and Headless mode
 | extend isBrowser = ProcessName in~ (Browsers)
 | extend isHeadless = CommandLine has_any ("--headless", "-headless", "--remote-debugging-port")
 | evaluate ipv4_lookup(CIDRASN, RemoteIP, CIDR, return_unmatched=true)
 | invoke FileProfile(SHA256)
 | project-away SHA2561
-// 1. If it is a browser, it MUST be headless to stay in the results.
-// 2. If it is not a browser, it stays if it is rare (low prevalence) or a LOLBin.
 | where (isBrowser == true and isHeadless == true) 
      or (isBrowser == false and (GlobalPrevalence < 10000 or ProcessName in~ ((LOLBAS | project Name))))
+| project-reorder LastSeen, ReportId, DeviceId, ProcessName, isHeadless, GlobalPrevalence, RemoteIP, RemoteUrl
 | sort by isHeadless desc, GlobalPrevalence asc
 
 ```
