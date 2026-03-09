@@ -39,7 +39,7 @@ DeviceNetworkEvents
 | where isnotempty(RemoteIP) and RemoteIPType == "Public"
 | where RemoteIP !in (WhitelistedIPs)
 | where not(RemoteUrl has_any (WhitelistedDomains))
-// ReportId zum Project hinzugefügt
+// Including ReportId and the original TimeGenerated
 | project TimeGenerated, DeviceId, RemoteIP, RemoteUrl, RemotePort, InitiatingProcessFileName, InitiatingProcessCommandLine, InitiatingProcessSHA256, ReportId
 | sort by DeviceId, RemoteIP, TimeGenerated asc
 | serialize
@@ -57,19 +57,23 @@ DeviceNetworkEvents
     ProcessName = any(InitiatingProcessFileName),
     SHA256 = any(InitiatingProcessSHA256),
     CommandLine = any(InitiatingProcessCommandLine),
-    // Wir nehmen die ReportId des letzten Events für Verknüpfungen/Alerts
+    // Get the ReportId of the most recent event
     ReportId = arg_max(TimeGenerated, ReportId)[1]
     by DeviceId, RemoteIP, RemoteUrl, RemotePort
 | where EventCount >= MinEvents
 | where StdDevDelta < (AvgDelta * 0.2)
+// Mapping LastSeen to Timestamp for Custom Detection Rule compatibility
+| extend Timestamp = LastSeen
 | extend isBrowser = ProcessName in~ (Browsers)
 | extend isHeadless = CommandLine has_any ("--headless", "-headless", "--remote-debugging-port")
 | evaluate ipv4_lookup(CIDRASN, RemoteIP, CIDR, return_unmatched=true)
 | invoke FileProfile(SHA256)
 | project-away SHA2561
+// Filtering for rare files, LOLBAS, or Headless Browsers
 | where (isBrowser == true and isHeadless == true) 
      or (isBrowser == false and (GlobalPrevalence < 10000 or ProcessName in~ ((LOLBAS | project Name))))
-| project-reorder LastSeen, ReportId, DeviceId, ProcessName, isHeadless, GlobalPrevalence, RemoteIP, RemoteUrl
+// Final projection including the mandatory Timestamp and ReportId
+| project-reorder Timestamp, DeviceId, ReportId, ProcessName, isHeadless, GlobalPrevalence, RemoteIP, RemoteUrl
 | sort by isHeadless desc, GlobalPrevalence asc
 
 ```
