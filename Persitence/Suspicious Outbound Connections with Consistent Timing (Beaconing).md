@@ -28,7 +28,7 @@ let MinEvents = 6;
 let WhitelistedDomains = dynamic([".wns.windows.com","techsmith.com","firefox.com", "acrobat.com","nic.ch","windowsupdate.com", ".arc.azure.com", ".svc.cloud.microsoft", ".guestconfiguration.azure.com", "adobe.com","assets.adobedtm.com",".pki.goog",".adobe.io",".adobelogin.com", "microsoft.com", "office.com", "sharepoint.com", "icloud.com", "citrix.com", "office365.com","digicert.com"]);
 let WhitelistedIPs = dynamic(["127.0.0.1"]);
 let Browsers = dynamic(["msedge.exe", "chrome.exe", "firefox.exe", "brave.exe", "opera.exe"]);
-// Fetching the official LOLBAS list
+// Fetch official LOLBAS list to identify trusted binaries used for malicious purposes
 let LOLBAS = (externaldata (Name:string, Category:string, Description:string, Author:string, Created:datetime, Commands:string, Paths:string, Detection:string, Resources:string, Acknowledgements:string, Url:string) 
     ['https://lolbas-project.github.io/api/lolbas.csv'] 
     with (format='csv', ignoreFirstRecord=true));
@@ -39,11 +39,11 @@ DeviceNetworkEvents
 | where isnotempty(RemoteIP) and RemoteIPType == "Public"
 | where RemoteIP !in (WhitelistedIPs)
 | where not(RemoteUrl has_any (WhitelistedDomains))
-// Including ReportId and the original TimeGenerated
 | project TimeGenerated, DeviceId, RemoteIP, RemoteUrl, RemotePort, InitiatingProcessFileName, InitiatingProcessCommandLine, InitiatingProcessSHA256, ReportId
 | sort by DeviceId, RemoteIP, TimeGenerated asc
 | serialize
 | extend PrevTime = prev(TimeGenerated), PrevDeviceId = prev(DeviceId), PrevRemoteIP = prev(RemoteIP)
+// Calculate time difference (Delta) between consecutive connections to the same destination
 | extend TimeDelta = iif(DeviceId == PrevDeviceId and RemoteIP == PrevRemoteIP, 
                          datetime_diff('second', TimeGenerated, PrevTime), 
                          int(null))
@@ -52,28 +52,25 @@ DeviceNetworkEvents
     EventCount = count(),
     AvgDelta = avg(TimeDelta),
     StdDevDelta = stdev(TimeDelta),
-    FirstSeen = min(TimeGenerated),
-    LastSeen = max(TimeGenerated),
+    Timestamp = max(TimeGenerated), 
     ProcessName = any(InitiatingProcessFileName),
     SHA256 = any(InitiatingProcessSHA256),
     CommandLine = any(InitiatingProcessCommandLine),
-    // Get the ReportId of the most recent event
-    ReportId = arg_max(TimeGenerated, ReportId)[1]
+    ReportId = any(ReportId) 
     by DeviceId, RemoteIP, RemoteUrl, RemotePort
 | where EventCount >= MinEvents
+// Filter for high regularity: Low Standard Deviation indicates automated beaconing behavior
 | where StdDevDelta < (AvgDelta * 0.2)
-// Mapping LastSeen to Timestamp for Custom Detection Rule compatibility
-| extend Timestamp = LastSeen
+// Identify if browsers are running in --headless mode, a common sign of automated C2 traffic
 | extend isBrowser = ProcessName in~ (Browsers)
 | extend isHeadless = CommandLine has_any ("--headless", "-headless", "--remote-debugging-port")
 | evaluate ipv4_lookup(CIDRASN, RemoteIP, CIDR, return_unmatched=true)
 | invoke FileProfile(SHA256)
 | project-away SHA2561
-// Filtering for rare files, LOLBAS, or Headless Browsers
+// Apply logic to include only headless browsers, rare files, or known LOLBAS tools
 | where (isBrowser == true and isHeadless == true) 
      or (isBrowser == false and (GlobalPrevalence < 10000 or ProcessName in~ ((LOLBAS | project Name))))
-// Final projection including the mandatory Timestamp and ReportId
-| project-reorder Timestamp, DeviceId, ReportId, ProcessName, isHeadless, GlobalPrevalence, RemoteIP, RemoteUrl
-| sort by isHeadless desc, GlobalPrevalence asc
+// Final projection to ensure MDE Detection Rule compatibility with required columns
+| project Timestamp, DeviceId, ReportId, ProcessName, isHeadless, GlobalPrevalence, RemoteIP, RemoteUrl, CommandLine, CIDRASNName
 
 ```
