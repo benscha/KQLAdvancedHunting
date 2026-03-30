@@ -1,4 +1,4 @@
-# *Suspicious Shell or Direct Process Execution from Browser*
+# *macOS Suspicious Shell or Direct Process Execution from Browser*
 
 ## Query Information
 
