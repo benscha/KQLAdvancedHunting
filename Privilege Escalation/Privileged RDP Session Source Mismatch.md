@@ -1,4 +1,4 @@
-# *Certificate Issued to Privileged User*
+# *Privileged RDP Session Source Mismatch*
 
 ## Query Information
 
