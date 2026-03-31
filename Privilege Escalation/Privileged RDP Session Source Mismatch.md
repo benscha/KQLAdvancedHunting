@@ -43,8 +43,9 @@ let PrivRecentUserPattern = @"^sys[ae]\.";
 let ExcludedAccountDomains = dynamic(["nt service", "font driver host", "window manager", "nt-autorität", "autorite nt", "nt authority"]);
 // Generic account names to exclude from recent user enrichment
 let ExcludedAccountNames = dynamic(["-", "admin"]);
-// IP ranges to exclude from device IP mapping (link-local, private, unassigned)
-let ExcludeIPRanges = dynamic(["169.254.0.0/16", "192.168.0.0/16"]);
+// IP ranges to exclude from device IP mapping (link-local, private)
+let ExcludeIPRange1 = "169.254.0.0/16";
+let ExcludeIPRange2 = "192.168.0.0/16";
 // ============================================================================
 // Time Settings
 // ============================================================================
@@ -61,8 +62,8 @@ let MaxTimeDiffSeconds = 3600;
 let DeviceIPs = DeviceNetworkEvents
 | where Timestamp > ago(LookbackWindow)
 | where isnotempty(DeviceName)
-| where not(ipv4_is_in_range(LocalIP, ExcludeIPRanges[0]))
-| where not(ipv4_is_in_range(LocalIP, ExcludeIPRanges[1]))
+| where not(ipv4_is_in_range(LocalIP, ExcludeIPRange1))
+| where not(ipv4_is_in_range(LocalIP, ExcludeIPRange2))
 | where LocalIP != "0.0.0.0"
 | project DeviceIP_Timestamp = Timestamp, DeviceName, LocalIP;
 // Privileged RDP logons within detection window
