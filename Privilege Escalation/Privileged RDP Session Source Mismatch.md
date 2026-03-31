@@ -25,7 +25,7 @@ The query correlates data from DeviceLogonEvents and DeviceNetworkEvents to reso
 - **LinkedIn: https://www.linkedin.com/in/benjamin-zulliger/**
 
 #### References
-- 
+- Full Blog Post on Linkedin: https://www.linkedin.com/pulse/detecting-unauthorized-privileged-rdp-sessions-benjamin-zulliger-7pxye/
 
 ## Sentinel
 
