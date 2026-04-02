@@ -55,7 +55,7 @@ BehaviorAnalytics
 | extend IsNewAgent = iff(set_has_element(KnownAgents, UserAgent), false, true)
 | extend IsNewOS = iff(set_has_element(KnownOS, OS), false, true)
 // Filter: Identify sign-ins from a new IP combined with unknown technical signatures (Agent/OS)
-| where IsNewIP == true and (IsNewAgent == true and IsNewOS == true)
+| where IsNewIP == true and (IsNewAgent == true or IsNewOS == true)
 | extend IpInfo = geo_info_from_ip_address(SourceIPAddress)
 | extend Country = tostring(IpInfo.country)
 | where Country !in (ExcludedCountries) // Exclude sign-ins from defined Countries
