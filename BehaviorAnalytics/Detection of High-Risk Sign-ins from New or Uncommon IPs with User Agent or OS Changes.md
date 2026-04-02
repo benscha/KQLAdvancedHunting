@@ -21,8 +21,9 @@ This query identifies users exhibiting unusual authentication behavior by combin
 ## Defender XDR
 ```KQL
 let ExcludedApps = dynamic(["app-ext-jamfconnect-p"]); // Exclude some Apps
-let EnterpriseIPRange = "0.0.0.0/16"; // Define your internal network range here
-let ExcludedCountries = dynamic(["Craft Beer Land","Wonderland"]);
+let EnterpriseIPRange = "147.86.0.0/16"; // Define your internal network range here
+let ExcludedCountries = dynamic(["Switzerland","Wonderland"]);
+let ExcludedOS = dynamic(["Android", "Ios"]);
 let LookbackStart = ago(30d);
 // Historical Profile: Establish a baseline of "normal" behavior for each user
 let UserHistory = SigninLogs
@@ -46,6 +47,7 @@ BehaviorAnalytics
     | where UserType != "Guest"
     | where AppDisplayName !in (ExcludedApps) // Filter out known management or system applications
     | where DeviceDetail.isManaged == "false" // Focus on unmanaged/BYOD devices
+    | where not(tostring(DeviceDetail.operatingSystem) has_any (ExcludedOS))
     | project TimeGenerated, UserPrincipalName, IPAddress, UserAgent, 
               OS = tostring(DeviceDetail.operatingSystem), AppDisplayName
 ) on UserPrincipalName
