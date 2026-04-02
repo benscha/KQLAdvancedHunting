@@ -20,49 +20,44 @@ This query identifies users exhibiting unusual authentication behavior by combin
 
 ## Defender XDR
 ```KQL
-let ExludedApps = dynamic(["app-ext-jamfconnect-p"]);
-let EnterpriseIPRange = "0.0.0.0/16" ;
+let ExcludedApps = dynamic(["app-ext-jamfconnect-p"]); // Exclude some Apps
+let EnterpriseIPRange = "0.0.0.0/16"; // Define your internal network range here
+let ExcludedCountries = dynamic(["Craft Beer Land","Wonderland"]);
 let LookbackStart = ago(30d);
-let LookbackEnd = ago(1d);
-let HistoricalSignins = SigninLogs
+// Historical Profile: Establish a baseline of "normal" behavior for each user
+let UserHistory = SigninLogs
+| where TimeGenerated >= LookbackStart and TimeGenerated < ago(1d)
 | where ResultType == 0
-| where TimeGenerated >= LookbackStart and TimeGenerated < LookbackEnd
-| extend operatingSystem = tostring(DeviceDetail.operatingSystem)
-| summarize HistoricalIPSeenCount = count(), HistoricalUserAgents = make_set(UserAgent), HistoricalOperatingSystems = make_set(operatingSystem) by UserPrincipalName, IPAddress;
+| summarize 
+    KnownIPs = make_set(IPAddress), 
+    KnownAgents = make_set(UserAgent),
+    KnownOS = make_set(tostring(DeviceDetail.operatingSystem))
+    by UserPrincipalName;
+// Current Activity: Analyze recent sign-ins with exclusion filters applied
 BehaviorAnalytics
-| where isnotempty(UserPrincipalName)
-| where ActionType !contains "Failed"
-| where ActivityType !contains "Failed"
-| where not(ipv4_is_in_range(SourceIPAddress, EnterpriseIPRange))
+| where TimeGenerated > ago(1d)
 | where InvestigationPriority >= 3
+| where not(ipv4_is_in_range(SourceIPAddress, EnterpriseIPRange))
 | project Timestamp=TimeGenerated, UserPrincipalName, SourceIPAddress, InvestigationPriority
 | join kind=inner (
     SigninLogs
-    | where ResultType == 0
-    | where UserType !in ("Guest")
-    | where AppDisplayName !in (ExludedApps)
-    | extend operatingSystem = tostring(DeviceDetail.operatingSystem), browser = tostring(DeviceDetail.browser), isManaged = tostring(DeviceDetail.isManaged)
-    | where isManaged == "false"
-    | where RiskLevelDuringSignIn != "none"
-    | project TimeGenerated, UserPrincipalName, SigninIPAddress = IPAddress, AppDisplayName, RiskLevelDuringSignIn, operatingSystem, browser, isManaged, UserAgent
+    | where TimeGenerated > ago(1d)
+    | where ResultType == 0 
+    | where UserType != "Guest"
+    | where AppDisplayName !in (ExcludedApps) // Filter out known management or system applications
+    | where DeviceDetail.isManaged == "false" // Focus on unmanaged/BYOD devices
+    | project TimeGenerated, UserPrincipalName, IPAddress, UserAgent, 
+              OS = tostring(DeviceDetail.operatingSystem), AppDisplayName
 ) on UserPrincipalName
-| join kind=leftouter (
-    HistoricalSignins
-) on UserPrincipalName, $left.SigninIPAddress == $right.IPAddress
-| project-away UserPrincipalName1, UserPrincipalName2
-| extend IPSeenBefore = iff(isnotempty(HistoricalIPSeenCount), true, false)
-| extend UserAgentChanged = iff(IPSeenBefore and isnotempty(HistoricalUserAgents) and not(set_has_element(HistoricalUserAgents, UserAgent)), true, false)
-| extend OperatingSystemChanged = iff(IPSeenBefore and isnotempty(HistoricalOperatingSystems) and not(set_has_element(HistoricalOperatingSystems, operatingSystem)), true, false)
-| extend IPUsageRisk = case(
-    IPSeenBefore == false, "High - new IP for this user",
-    HistoricalIPSeenCount < 3, "Medium - rare IP for this user",
-    HistoricalIPSeenCount >= 3, "Low - frequently used IP",
-    "Unknown"
-)
-| summarize arg_max(TimeGenerated, *) by UserPrincipalName, UserAgent
-| where IPSeenBefore == false and ( UserAgentChanged == true or OperatingSystemChanged == true) 
-| join kind=leftouter( 
-    IdentityInfo 
-    | project AccountObjectId, AccountUpn, ReportId )
-    on $left.UserPrincipalName == $right.AccountUpn
+| join kind=leftouter UserHistory on UserPrincipalName
+// Check if the current activity matches the historical baseline
+| extend IsNewIP = iff(set_has_element(KnownIPs, IPAddress), false, true)
+| extend IsNewAgent = iff(set_has_element(KnownAgents, UserAgent), false, true)
+| extend IsNewOS = iff(set_has_element(KnownOS, OS), false, true)
+// Filter: Identify sign-ins from a new IP combined with unknown technical signatures (Agent/OS)
+| where IsNewIP == true and (IsNewAgent == true and IsNewOS == true)
+| extend IpInfo = geo_info_from_ip_address(SourceIPAddress)
+| extend Country = tostring(IpInfo.country)
+| where Country !in (ExcludedCountries) // Exclude sign-ins from defined Countries
+| summarize arg_max(TimeGenerated, *) by UserPrincipalName
 ```
