@@ -1,6 +1,11 @@
+<img width="1279" height="720" alt="image" src="https://github.com/user-attachments/assets/aa964c5c-ef2e-47c3-94a0-76e0d75da0d0" />
+
+
 **Description**
 
 Azure Logic App to automatically close low-priority Microsoft Defender incidents based on the Priority Score. Incidents below a configurable threshold are resolved via Microsoft Graph API, reducing SOC noise and alert fatigue while preserving traceability through custom tags.
+
+Link to Full Article: https://www.linkedin.com/pulse/use-microsoft-defender-priority-score-reduce-noise-benjamin-zulliger-ja3re/
 
 ```json
 {
