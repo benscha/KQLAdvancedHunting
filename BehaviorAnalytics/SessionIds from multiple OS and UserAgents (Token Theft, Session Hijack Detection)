@@ -21,6 +21,7 @@ This rule detects impossible travel scenarios where a single user session (ident
 
 ## Defender XDR
 ```KQL
+// thx to my ♥ Buddy Sergio Albea for the wonderful ASN Part from this Query
 let CIDRASN = (externaldata (CIDR:string, CIDRASN:int, CIDRASNName:string)
 ['https://firewalliplists.gypthecat.com/lists/kusto/kusto-cidr-asn.csv.zip']
 with (ignoreFirstRecord=true));
