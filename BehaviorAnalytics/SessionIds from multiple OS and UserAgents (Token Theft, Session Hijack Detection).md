@@ -29,7 +29,6 @@ EntraIdSignInEvents
 | where TimeGenerated > ago(12h)
 | where isnotempty(SessionId)
 | where UserAgent !contains "node-fetch"
-// Wir rufen die Funktion zweimal auf, um die zwei benötigten Dimensionen zu erhalten
 | extend OS = tostring(parse_user_agent(UserAgent, "os").OperatingSystemFamily)
 | extend Browser = tostring(parse_user_agent(UserAgent, "browser").BrowserFamily)
 | evaluate ipv4_lookup(CIDRASN, IPAddress, CIDR, return_unmatched=true)
