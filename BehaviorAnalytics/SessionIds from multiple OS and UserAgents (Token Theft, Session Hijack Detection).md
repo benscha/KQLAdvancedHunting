@@ -26,7 +26,7 @@ let CIDRASN = (externaldata (CIDR:string, CIDRASN:int, CIDRASNName:string)
 ['https://firewalliplists.gypthecat.com/lists/kusto/kusto-cidr-asn.csv.zip']
 with (ignoreFirstRecord=true));
 EntraIdSignInEvents
-| where TimeGenerated > ago(1h)
+| where TimeGenerated > ago(12h)
 | where isnotempty(SessionId)
 | where UserAgent !contains "node-fetch"
 // Wir rufen die Funktion zweimal auf, um die zwei benötigten Dimensionen zu erhalten
