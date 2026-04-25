@@ -50,6 +50,7 @@ after sleeping one night over my Query i had the Idea to extend the Timeframe. B
 
 <img width="948" height="139" alt="image" src="https://github.com/user-attachments/assets/df69d8e7-406a-48c4-bf12-9957c0dbf0aa" />
 
+
 ```KQL
 let CIDRASN = materialize(externaldata (CIDR:string, CIDRASN:int, CIDRASNName:string)
     ['https://firewalliplists.gypthecat.com/lists/kusto/kusto-cidr-asn.csv.zip']
