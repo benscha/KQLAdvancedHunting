@@ -6,7 +6,7 @@
 
 | Technique ID | Title    | Link    |
 | ---  | --- | --- |
-| T1649 | Steal or Forge Authentication Certificates | https://attack.mitre.org/techniques/T1649/ |
+| T1098 | Account Manipulation | https://attack.mitre.org/techniques/T1098/ |
 
 #### Description
 This detection identifies potential privilege escalation involving the Agent ID Administrator role. Historically, this role could be exploited to bypass intended restrictions by assigning the actor as an owner of sensitive Service Principals and subsequently adding unauthorized credentials.
