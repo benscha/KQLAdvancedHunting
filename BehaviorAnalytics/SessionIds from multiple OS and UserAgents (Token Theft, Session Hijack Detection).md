@@ -45,3 +45,50 @@ EntraIdSignInEvents
 | where IPAddressCount > 1 
 | where OSFamilyCount > 1 or BrowserFamilyCount > 1
 ```
+
+after sleeping one night over my Query i had the Idea to extend the Timeframe. Be careful with adjusting the Timeframe due to ressources limit
+
+<img width="948" height="139" alt="image" src="https://github.com/user-attachments/assets/df69d8e7-406a-48c4-bf12-9957c0dbf0aa" />
+
+```KQL
+let CIDRASN = materialize(externaldata (CIDR:string, CIDRASN:int, CIDRASNName:string)
+    ['https://firewalliplists.gypthecat.com/lists/kusto/kusto-cidr-asn.csv.zip']
+    with (ignoreFirstRecord=true));
+let SuspiciousSessions = materialize(
+    EntraIdSignInEvents
+    | where TimeGenerated > ago(3d)
+    | where isnotempty(SessionId)
+    | where UserAgent !contains "node-fetch"
+    | project SessionId, IPAddress, UserAgent, AccountUpn
+    | extend UA = parse_user_agent(UserAgent, dynamic(["os", "browser"]))
+    | extend OS = tostring(UA.OperatingSystemFamily), Browser = tostring(UA.BrowserFamily)
+    | project-away UA
+    | summarize hint.shufflekey=SessionId
+        OSFamilyCount      = dcount(OS),
+        BrowserFamilyCount = dcount(Browser),
+        IPAddressCount     = dcount(IPAddress),
+        IPAddressList      = make_set(IPAddress, 50),
+        UserAgentList      = make_set(UserAgent, 10),
+        UserPrincipalNames = make_set(AccountUpn, 20)
+        by SessionId
+    | where IPAddressCount > 1
+    | where OSFamilyCount > 1 or BrowserFamilyCount > 1
+);
+let IPtoASN = materialize(
+    SuspiciousSessions
+    | mv-expand IPAddress = IPAddressList to typeof(string)
+    | distinct IPAddress
+    | evaluate ipv4_lookup(CIDRASN, IPAddress, CIDR, return_unmatched=true)
+    | summarize ASNNames = make_set(CIDRASNName, 20) by IPAddress
+);
+SuspiciousSessions
+| mv-expand IPAddress = IPAddressList to typeof(string)
+| join kind=leftouter IPtoASN on IPAddress
+| summarize hint.shufflekey=SessionId
+    ASNCount       = dcount(tostring(ASNNames)),
+    ASNNameList    = make_set(ASNNames, 50),
+    IPAddressList  = make_set(IPAddress, 50),
+    UserAgentList  = take_any(UserAgentList),
+    UserPrincipalNames = take_any(UserPrincipalNames)
+    by SessionId, IPAddressCount, OSFamilyCount, BrowserFamilyCount
+```
