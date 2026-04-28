@@ -31,7 +31,7 @@ let whitelistedIPRange = dynamic(["XX.XX.0.0/16", "10.0.0.0/8"]);
 let phishingSenderIPs = dynamic(["XX.XX.XX.XX", "XX.XX.XX.XX"]);
 let phishingSubjects = dynamic([
     "Complete Document E-sign Agreement Review",
-    'Matheus Bernardes shared "Document!"'
+    'Gambrinus Hoppus shared "Document!"'
 ]);
 // IP History: Count how many times the user has logged in from this IP (last 29 days)
 let HistoricalIPCounts = EntraIdSignInEvents
