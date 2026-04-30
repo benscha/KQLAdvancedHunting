@@ -24,8 +24,7 @@ This rule detects a multi-stage phishing attack where a user clicks on a suspici
 // Parameters 
 let LookbackHistory = 29d;
 // please be aware that there is an underscore instead of a dot
-let OwnSharepointDomain = "fhnw_ch"; 
-
+let OwnSharepointDomain = "mydomain_com"; 
 // Phishing Clicks 
 let PhishClicks = materialize(
     UrlClickEvents
@@ -75,7 +74,6 @@ let BehaviorData = materialize(
         AccountUpn = tolower(UserPrincipalName),
         FirstTimeUserConnectedFromDevice = tostring(ActivityInsights.Value)
 );
-
 // Suspicious Logins after Click (within 4h)
 EntraIdSignInEvents
 | where Timestamp > ago(1d)
