@@ -46,58 +46,105 @@ Link to Full Article: https://www.linkedin.com/pulse/use-microsoft-defender-prio
                     }
                 }
             },
+            "Initialize_Variable_ExcludedTitleKeywords": {
+                "type": "InitializeVariable",
+                "inputs": {
+                    "variables": [
+                        {
+                            "name": "excludedTitleKeywords",
+                            "type": "Array",
+                            "value": [
+                                "Anomalous Token usage",
+                                "demo",
+                                "false positive"
+                            ]
+                        }
+                    ]
+                },
+                "runAfter": {
+                    "HTTP": [
+                        "Succeeded"
+                    ]
+                }
+            },
             "For_each": {
                 "type": "Foreach",
                 "foreach": "@body('HTTP')['value']",
                 "actions": {
-                    "Condition_PriorityScore_below_25": {
+                    "Filter_Excluded_Titles": {
+                        "type": "Query",
+                        "inputs": {
+                            "from": "@variables('excludedTitleKeywords')",
+                            "where": "@contains(toLower(items('For_each')?['displayName']), toLower(item()))"
+                        }
+                    },
+                    "Condition_Title_Not_Excluded": {
                         "type": "If",
                         "expression": {
-                            "and": [
-                                {
-                                    "not": {
-                                        "equals": [
-                                            "@item()?['priorityScore']",
-                                            null
-                                        ]
-                                    }
-                                },
-                                {
-                                    "less": [
-                                        "@item()?['priorityScore']",
-                                        25
-                                    ]
-                                }
+                            "equals": [
+                                "@length(body('Filter_Excluded_Titles'))",
+                                0
                             ]
                         },
                         "actions": {
-                            "HTTP_PATCH_Close_Incident": {
-                                "type": "Http",
-                                "inputs": {
-                                    "uri": "https://graph.microsoft.com/v1.0/security/incidents/@{item()?['id']}",
-                                    "method": "PATCH",
-                                    "headers": {
-                                        "Content-Type": "application/json"
-                                    },
-                                    "body": {
-                                        "status": "resolved",
-                                        "resolvingComment": "Auto-closed: priorityScore below threshold (25)",
-                                        "customTags": "@union(item()?['customTags'], createArray('LowPrioScore'))"
-                                    },
-                                    "authentication": {
-                                        "type": "ManagedServiceIdentity",
-                                        "audience": "https://graph.microsoft.com"
+                            "Condition_PriorityScore_below_25": {
+                                "type": "If",
+                                "expression": {
+                                    "and": [
+                                        {
+                                            "not": {
+                                                "equals": [
+                                                    "@item()?['priorityScore']",
+                                                    null
+                                                ]
+                                            }
+                                        },
+                                        {
+                                            "less": [
+                                                "@item()?['priorityScore']",
+                                                25
+                                            ]
+                                        }
+                                    ]
+                                },
+                                "actions": {
+                                    "HTTP_PATCH_Close_Incident": {
+                                        "type": "Http",
+                                        "inputs": {
+                                            "uri": "https://graph.microsoft.com/v1.0/security/incidents/@{item()?['id']}",
+                                            "method": "PATCH",
+                                            "headers": {
+                                                "Content-Type": "application/json"
+                                            },
+                                            "body": {
+                                                "status": "resolved",
+                                                "resolvingComment": "Auto-closed: priorityScore below threshold (25)",
+                                                "customTags": "@union(item()?['customTags'], createArray('LowPrioScore'))"
+                                            },
+                                            "authentication": {
+                                                "type": "ManagedServiceIdentity",
+                                                "audience": "https://graph.microsoft.com"
+                                            }
+                                        }
                                     }
+                                },
+                                "else": {
+                                    "actions": {}
                                 }
                             }
                         },
                         "else": {
                             "actions": {}
+                        },
+                        "runAfter": {
+                            "Filter_Excluded_Titles": [
+                                "Succeeded"
+                            ]
                         }
                     }
                 },
                 "runAfter": {
-                    "HTTP": [
+                    "Initialize_Variable_ExcludedTitleKeywords": [
                         "Succeeded"
                     ]
                 }
