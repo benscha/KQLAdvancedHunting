@@ -68,8 +68,6 @@ let BehaviorData = materialize(
     | where TimeGenerated > ago(7d)  // <── adjust as needed
     | where tolower(UserPrincipalName) in (AffectedUsers)
     | mv-expand ActivityInsights
-    //| where ActivityInsights.["FirstTimeUserConnectedFromDevice"] == "True"
-    //| where ActivityInsights.["ISPUncommonlyUsedByUser"] == "True"
     | project
         AccountUpn = tolower(UserPrincipalName),
         FirstTimeUserConnectedFromDevice = tostring(ActivityInsights.Value)
