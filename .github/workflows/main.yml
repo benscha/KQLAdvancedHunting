@@ -10,7 +10,7 @@ jobs:
     steps:
       - name: Fetch & save traffic data
         env:
-          GH_TOKEN: ${{ secrets.GHTRAFFICToken }}
+          GH_TOKEN: ${{ secrets.TRAFFIC_PAT }}
           REPO: ${{ github.repository }}
         run: |
           DATE=$(date +%Y-%m-%d)
