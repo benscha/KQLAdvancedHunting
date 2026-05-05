@@ -5,7 +5,7 @@ This guide walks you through setting up an Azure Logic App that automatically:
 - Fetches **SaaS app discovery data** from Microsoft Defender for Cloud Apps via Microsoft Graph API
 - Writes all app data daily into a **custom Microsoft Sentinel / Log Analytics table** (`CloudAppRiskCatalog_CL`)
 - Filters apps by **AI categories** (Generative AI, AI - Model Provider, AI - MCP Server)
-- Sends a **monthly email report** with a CSV attachment via Microsoft Graph API
+- Sends a **monthly email report** with a CSV attachment via Microsoft Graph API (limited to AI and MCP)
 
 ---
 
@@ -41,6 +41,9 @@ Microsoft Defender for Cloud Apps
          ▼
    Email recipients (CSV attachment with AI apps)
 ```
+<img width="1056" height="2272" alt="image" src="https://github.com/user-attachments/assets/11985b63-2e8a-4dac-afd3-d1452dfbd87e" />
+
+
 
 **Key components:**
 - **Logic App (Consumption)** – orchestrates the workflow, runs daily at 04:00
@@ -802,6 +805,15 @@ let prevWeek = CloudAppRiskCatalog_CL
 thisWeek
 | join kind=leftanti prevWeek on AppName
 | project AppName
+```
+
+### Piechart by Category with Traffic in %
+<img width="638" height="397" alt="image" src="https://github.com/user-attachments/assets/3fa1a387-6d42-4df0-90dd-289c09e2c57c" />
+
+```kusto
+CloudAppRiskCatalog_CL
+| summarize TotalTrafficGB = sum(downloadNetworkTrafficInBytes + uploadNetworkTrafficInBytes) / 1024 / 1024 / 1024 by Category
+| render piechart with (title="Datenverkehr nach Kategorie (in GB)")
 ```
 
 ---
