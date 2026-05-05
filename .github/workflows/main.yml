@@ -1,12 +1,19 @@
-steps:
+name: Traffic Archive
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # Laeuft jeden Tag um Mitternacht
+  workflow_dispatch:      # Ermoeglicht manuelles Starten
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: GitHub Traffic Archive
-        # Wir nutzen hier eine sehr stabile Version eines anderen Entwicklers
-        # oder den korrigierten Pfad, falls vorhanden.
-        uses: sangonzalezplus/github-traffic-archiver@v1.7.0
-        env:
-          PAT: ${{ secrets.GHTRAFFICToken }}
-          USERNAME: ${{ github.repository_owner }}
-          REPO_NAME: ${{ github.event.repository.name }}
+      - name: Archive Traffic
+        uses: enricomarino/traffic-log@master
+        with:
+          # Achte darauf, dass der Name hier exakt deinem Secret entspricht!
+          token: ${{ secrets.GHTRAFFICToken }}
