@@ -2,18 +2,20 @@ name: Traffic Archive
 
 on:
   schedule:
-    - cron: '0 0 * * *' # Laeuft jeden Tag um Mitternacht
-  workflow_dispatch:      # Ermoeglicht manuelles Starten
+    - cron: '0 0 * * *' 
+  workflow_dispatch: 
 
 jobs:
-  build:
+  run-stats:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Archive Traffic
-        uses: enricomarino/traffic-log@master
+      - name: GitHub Traffic Stats
+        uses: tech-mark0/github-traffic-stats@master
         with:
-          # Achte darauf, dass der Name hier exakt deinem Secret entspricht!
+          # Dein Token aus den Secrets
           token: ${{ secrets.GHTRAFFICToken }}
+          # Das Repository, das analysiert werden soll (Format: Besitzer/Name)
+          repository: ${{ github.repository }}
