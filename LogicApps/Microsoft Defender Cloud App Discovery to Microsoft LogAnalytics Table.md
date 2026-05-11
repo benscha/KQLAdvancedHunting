@@ -41,7 +41,8 @@ Microsoft Defender for Cloud Apps
          ▼
    Email recipients (CSV attachment with AI apps)
 ```
-<img width="1056" height="2272" alt="image" src="https://github.com/user-attachments/assets/11985b63-2e8a-4dac-afd3-d1452dfbd87e" />
+
+<img width="786" height="2702" alt="image" src="https://github.com/user-attachments/assets/c6c9ef03-9366-4d5a-b0b4-295de7e6ab64" />
 
 
 
