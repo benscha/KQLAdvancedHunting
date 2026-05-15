@@ -172,6 +172,41 @@ AnomalousLogins
     RiskScore >= 5,  "Low",
     "Informational")
 | where RiskScore >= 10
+| extend InvestigateSource = case(
+    // Aktueller Login ist eduID → dieser ist verdächtig
+    Source == "eduID" and prevSource == "EntraID", "eduID",
+    // Vorheriger Login war eduID → dieser war verdächtig
+    Source == "EntraID" and prevSource == "eduID", "eduID",
+    // Beide eduID → beide prüfen
+    Source == "eduID" and prevSource == "eduID", "Both eduID",
+    "Unknown")
+| extend InvestigateIP = case(
+    Source == "eduID" and prevSource == "EntraID", IP,
+    Source == "EntraID" and prevSource == "eduID", prevIP,
+    Source == "eduID" and prevSource == "eduID", strcat(IP, " / ", prevIP),
+    "")
+| extend InvestigateLocation = case(
+    Source == "eduID" and prevSource == "EntraID", strcat(City, ", ", Country),
+    Source == "EntraID" and prevSource == "eduID", strcat(prevCity, ", ", prevCountry),
+    Source == "eduID" and prevSource == "eduID", strcat(City, ", ", Country, " / ", prevCity, ", ", prevCountry),
+    "")
+| extend InvestigateTime = case(
+    Source == "eduID" and prevSource == "EntraID", TimeGenerated,
+    Source == "EntraID" and prevSource == "eduID", prevTime,
+    Source == "eduID" and prevSource == "eduID", TimeGenerated,
+    datetime(null))
+| project-away UserAgent, prevUserAgent
+| project TimeGenerated, prevTime, UPN,
+          InvestigateSource, InvestigateIP, InvestigateLocation, InvestigateTime,
+          Source, prevSource, IP, prevIP,
+          UA_OSType, UA_OS, UA_Browser, UA_BrowserVer,
+          prev_OSType, prev_OS, prev_Browser, prev_BrowserVer,
+          RiskScore, Severity,
+          Score_MobileBrowserChange, Score_MobileOSChange,
+          Score_DesktopBrowserChange, Score_DesktopOSChange,
+          Score_MobileBrowserDowngrade, Score_DesktopBrowserDowngrade,
+          Country, prevCountry, City, prevCity,
+          dist_km, time_diff, speed_kmh, SeenOnEntra, SeenOnEduID, IsKnownCrossIP
 | project-away UserAgent, prevUserAgent
 | project TimeGenerated, prevTime, UPN, IP, prevIP, Source, prevSource,
           UA_OSType, UA_OS, UA_Browser, UA_BrowserVer,
