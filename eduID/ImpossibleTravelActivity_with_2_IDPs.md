@@ -207,15 +207,5 @@ AnomalousLogins
           Score_MobileBrowserDowngrade, Score_DesktopBrowserDowngrade,
           Country, prevCountry, City, prevCity,
           dist_km, time_diff, speed_kmh, SeenOnEntra, SeenOnEduID, IsKnownCrossIP
-| project-away UserAgent, prevUserAgent
-| project TimeGenerated, prevTime, UPN, IP, prevIP, Source, prevSource,
-          UA_OSType, UA_OS, UA_Browser, UA_BrowserVer,
-          prev_OSType, prev_OS, prev_Browser, prev_BrowserVer,
-          RiskScore,
-          Score_MobileBrowserChange, Score_MobileOSChange,
-          Score_DesktopBrowserChange, Score_DesktopOSChange,
-          Score_MobileBrowserDowngrade, Score_DesktopBrowserDowngrade,
-          Country, prevCountry, City, prevCity,
-          dist_km, time_diff, speed_kmh, SeenOnEntra, SeenOnEduID, IsKnownCrossIP
 
 ```
