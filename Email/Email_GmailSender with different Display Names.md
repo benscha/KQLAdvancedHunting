@@ -21,18 +21,20 @@ Detects a single Gmail sender address using multiple distinct display names with
 
 ## Defender XDR
 ```KQL
+let Timeframe = 2h;
 let suspiciousSender = EmailEvents
-| where SenderFromAddress endswith "gmail.com"
-| where Timestamp > ago(2h)
+| where Timestamp > ago(Timeframe)
 | where EmailDirection == "Inbound"
+| where SenderFromAddress has "gmail.com"
 | summarize 
     DistinctDisplayNames = dcount(SenderDisplayName),
-    DisplayNames = make_set(SenderDisplayName)
+    DisplayNames = make_set(SenderDisplayName, 10) // Limitierung schützt den Speicher
 by SenderFromAddress
-| where DistinctDisplayNames > 1
-| order by DistinctDisplayNames desc;
+| where DistinctDisplayNames > 1;
+// Haupt-Query profitiert jetzt ebenfalls vom Zeitfilter
 EmailEvents
-| join kind=inner (
-    suspiciousSender
-    | project SenderFromAddress) on SenderFromAddress 
+| where Timestamp > ago(Timeframe)
+| where EmailDirection == "Inbound"
+| join kind=leftsemi suspiciousSender on SenderFromAddress
+| order by Timestamp desc
 ```
