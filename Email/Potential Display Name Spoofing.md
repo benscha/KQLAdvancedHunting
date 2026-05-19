@@ -33,6 +33,7 @@ IdentityInfo
 | where EmailDirection == "Inbound"
 | where DeliveryAction == "Delivered"
 | where IsFirstContact == 1
+| where isnotempty( SenderDisplayName)
 // only seen cases with identical Addresses
 | where SenderFromAddress == SenderMailFromAddress
 // Normalize and extract local part early for reuse
