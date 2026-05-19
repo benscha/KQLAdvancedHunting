@@ -311,7 +311,7 @@ Before saving, replace the following values:
                     "interval": 24,
                     "frequency": "Hour",
                     "timeZone": "W. Europe Standard Time",
-                    "startTime": "2026-01-01T10:00:00Z"
+                    "startTime": "2026-01-19T10:00:00Z"
                 }
             }
         },
@@ -343,23 +343,34 @@ Before saving, replace the following values:
                     "schema": {
                         "type": "object",
                         "properties": {
-                            "@@odata.context": { "type": "string" },
+                            "@@odata.context": {
+                                "type": "string"
+                            },
                             "value": {
                                 "type": "array",
                                 "items": {
                                     "type": "object",
                                     "properties": {
-                                        "id": { "type": "string" },
-                                        "displayName": { "type": "string" }
+                                        "id": {
+                                            "type": "string"
+                                        },
+                                        "displayName": {
+                                            "type": "string"
+                                        }
                                     },
-                                    "required": ["id", "displayName"]
+                                    "required": [
+                                        "id",
+                                        "displayName"
+                                    ]
                                 }
                             }
                         }
                     }
                 },
                 "runAfter": {
-                    "HTTP": ["Succeeded"]
+                    "HTTP": [
+                        "Succeeded"
+                    ]
                 }
             },
             "Initialize_BatchIndex": {
@@ -375,9 +386,21 @@ Before saving, replace the following values:
                             "name": "EmailRecipients",
                             "type": "array",
                             "value": [
-                                { "emailAddress": { "address": "admin1@example.com" } },
-                                { "emailAddress": { "address": "admin2@example.com" } },
-                                { "emailAddress": { "address": "admin3@example.com" } }
+                                {
+                                    "emailAddress": {
+                                        "address": "benjamin.zulliger@fhnw.ch"
+                                    }
+                                },
+                                {
+                                    "emailAddress": {
+                                        "address": "nicola.elsener@fhnw.ch"
+                                    }
+                                },
+                                {
+                                    "emailAddress": {
+                                        "address": "dominik.hof@fhnw.ch"
+                                    }
+                                }
                             ]
                         },
                         {
@@ -388,31 +411,9 @@ Before saving, replace the following values:
                     ]
                 },
                 "runAfter": {
-                    "Parse_JSON": ["Succeeded"]
-                }
-            },
-            "Check_First_Of_Month": {
-                "type": "If",
-                "expression": {
-                    "and": [
-                        {
-                            "equals": ["@dayOfMonth(utcNow())", 1]
-                        }
+                    "Parse_JSON": [
+                        "Succeeded"
                     ]
-                },
-                "actions": {},
-                "else": {
-                    "actions": {
-                        "Terminate": {
-                            "type": "Terminate",
-                            "inputs": {
-                                "runStatus": "Cancelled"
-                            }
-                        }
-                    }
-                },
-                "runAfter": {
-                    "Initialize_BatchIndex": ["Succeeded"]
                 }
             },
             "For_each": {
@@ -424,7 +425,10 @@ Before saving, replace the following values:
                         "expression": {
                             "and": [
                                 {
-                                    "contains": ["@item()?['displayName']", "managed endpoints"]
+                                    "contains": [
+                                        "@item()?['displayName']",
+                                        "managed endpoints"
+                                    ]
                                 }
                             ]
                         },
@@ -451,11 +455,17 @@ Before saving, replace the following values:
                                     }
                                 },
                                 "runAfter": {
-                                    "Compose": ["Succeeded"]
+                                    "Compose": [
+                                        "Succeeded"
+                                    ]
                                 },
                                 "runtimeConfiguration": {
-                                    "contentTransfer": { "transferMode": "Chunked" },
-                                    "paginationPolicy": { "minimumItemCount": 9000 }
+                                    "contentTransfer": {
+                                        "transferMode": "Chunked"
+                                    },
+                                    "paginationPolicy": {
+                                        "minimumItemCount": 9000
+                                    }
                                 }
                             },
                             "Parse_App_Details": {
@@ -465,26 +475,62 @@ Before saving, replace the following values:
                                     "schema": {
                                         "type": "object",
                                         "properties": {
-                                            "@@odata.context": { "type": "string" },
+                                            "@@odata.context": {
+                                                "type": "string"
+                                            },
                                             "value": {
                                                 "type": "array",
                                                 "items": {
                                                     "type": "object",
                                                     "properties": {
-                                                        "id": { "type": "string" },
-                                                        "displayName": { "type": "string" },
-                                                        "riskScore": { "type": "integer" },
-                                                        "category": { "type": "string" },
-                                                        "tags": { "type": "array", "items": { "type": "string" } },
-                                                        "domains": { "type": "array", "items": { "type": "string" } },
-                                                        "downloadNetworkTrafficInBytes": { "type": "number" },
-                                                        "uploadNetworkTrafficInBytes": { "type": "number" },
-                                                        "transactionCount": { "type": "number" },
-                                                        "userCount": { "type": "integer" },
-                                                        "ipAddressCount": { "type": "integer" },
-                                                        "deviceCount": { "type": "integer" },
-                                                        "lastSeenDateTime": { "type": "string" },
-                                                        "connectedAppCount": { "type": "integer" }
+                                                        "id": {
+                                                            "type": "string"
+                                                        },
+                                                        "displayName": {
+                                                            "type": "string"
+                                                        },
+                                                        "riskScore": {
+                                                            "type": "integer"
+                                                        },
+                                                        "category": {
+                                                            "type": "string"
+                                                        },
+                                                        "tags": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "type": "string"
+                                                            }
+                                                        },
+                                                        "domains": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "type": "string"
+                                                            }
+                                                        },
+                                                        "downloadNetworkTrafficInBytes": {
+                                                            "type": "number"
+                                                        },
+                                                        "uploadNetworkTrafficInBytes": {
+                                                            "type": "number"
+                                                        },
+                                                        "transactionCount": {
+                                                            "type": "number"
+                                                        },
+                                                        "userCount": {
+                                                            "type": "integer"
+                                                        },
+                                                        "ipAddressCount": {
+                                                            "type": "integer"
+                                                        },
+                                                        "deviceCount": {
+                                                            "type": "integer"
+                                                        },
+                                                        "lastSeenDateTime": {
+                                                            "type": "string"
+                                                        },
+                                                        "connectedAppCount": {
+                                                            "type": "integer"
+                                                        }
                                                     }
                                                 }
                                             }
@@ -492,7 +538,9 @@ Before saving, replace the following values:
                                     }
                                 },
                                 "runAfter": {
-                                    "HTTP_Get_App_Details": ["Succeeded"]
+                                    "HTTP_Get_App_Details": [
+                                        "Succeeded"
+                                    ]
                                 }
                             },
                             "Select_Transform": {
@@ -521,7 +569,9 @@ Before saving, replace the following values:
                                     }
                                 },
                                 "runAfter": {
-                                    "Parse_App_Details": ["Succeeded"]
+                                    "Parse_App_Details": [
+                                        "Succeeded"
+                                    ]
                                 }
                             },
                             "Set_BatchIndex": {
@@ -531,20 +581,27 @@ Before saving, replace the following values:
                                     "value": 0
                                 },
                                 "runAfter": {
-                                    "Select_Transform": ["Succeeded"]
+                                    "Select_Transform": [
+                                        "Succeeded"
+                                    ]
                                 }
                             },
                             "Post_In_Batches": {
                                 "type": "Until",
                                 "expression": "@greaterOrEquals(variables('BatchIndex'), length(body('Select_Transform')))",
-                                "limit": { "count": 100, "timeout": "PT1H" },
+                                "limit": {
+                                    "count": 100,
+                                    "timeout": "PT1H"
+                                },
                                 "actions": {
                                     "HTTP_Post_Batch": {
                                         "type": "Http",
                                         "inputs": {
-                                            "uri": "https://YOUR-INGESTION-ENDPOINT.azure.com/dataCollectionRules/dcr-YOUR-DCR-ID/streams/Custom-CloudAppRiskCatalog_CL?api-version=2023-01-01",
+                                            "uri": "https://p-dce-testingnginx-01-qlfe.switzerlandnorth-1.ingest.monitor.azure.com/dataCollectionRules/dcr-3e3d0fa978d64c829a49f9b17557c290/streams/Custom-CloudAppRiskCatalog_CL?api-version=2023-01-01",
                                             "method": "POST",
-                                            "headers": { "Content-Type": "application/json" },
+                                            "headers": {
+                                                "Content-Type": "application/json"
+                                            },
                                             "body": "@take(skip(body('Select_Transform'), variables('BatchIndex')), 500)",
                                             "authentication": {
                                                 "type": "ManagedServiceIdentity",
@@ -559,12 +616,16 @@ Before saving, replace the following values:
                                             "value": 500
                                         },
                                         "runAfter": {
-                                            "HTTP_Post_Batch": ["Succeeded"]
+                                            "HTTP_Post_Batch": [
+                                                "Succeeded"
+                                            ]
                                         }
                                     }
                                 },
                                 "runAfter": {
-                                    "Set_BatchIndex": ["Succeeded"]
+                                    "Set_BatchIndex": [
+                                        "Succeeded"
+                                    ]
                                 }
                             },
                             "Filter_AI_Apps": {
@@ -574,66 +635,98 @@ Before saving, replace the following values:
                                     "where": "@or(or(or(contains(toLower(string(coalesce(item()?['category'], ''))), 'generative'), contains(toLower(string(coalesce(item()?['category'], ''))), 'model provider')), contains(toLower(string(coalesce(item()?['category'], ''))), 'mcp')), contains(toLower(string(coalesce(item()?['category'], ''))), 'ai - '))"
                                 },
                                 "runAfter": {
-                                    "Post_In_Batches": ["Succeeded"]
+                                    "Post_In_Batches": [
+                                        "Succeeded"
+                                    ]
                                 }
                             },
-                            "Create_CSV_Rows": {
-                                "type": "Select",
-                                "inputs": {
-                                    "from": "@body('Filter_AI_Apps')",
-                                    "select": "@{item()?['AppName']},@{item()?['AppId']},@{item()?['Category']},@{item()?['RiskScore']},@{item()?['Users']},@{item()?['Devices']},@{item()?['Transactions']},@{item()?['downloadNetworkTrafficInBytes']},@{item()?['Domains']},@{item()?['LastSeen']}"
-                                },
-                                "runAfter": {
-                                    "Filter_AI_Apps": ["Succeeded"]
-                                }
-                            },
-                            "Compose_CSV": {
-                                "type": "Compose",
-                                "inputs": "AppName,AppId,Category,RiskScore,Users,Devices,Transactions,DownloadTrafficBytes,Domains,LastSeen\n@{join(body('Create_CSV_Rows'), '\n')}",
-                                "runAfter": {
-                                    "Create_CSV_Rows": ["Succeeded"]
-                                }
-                            },
-                            "Send_Email_Graph": {
-                                "type": "Http",
-                                "inputs": {
-                                    "uri": "https://graph.microsoft.com/v1.0/users/noreply-automation@example.com/sendMail",
-                                    "method": "POST",
-                                    "headers": { "Content-Type": "application/json" },
-                                    "body": {
-                                        "message": {
-                                            "subject": "AI Apps Report - @{utcNow('yyyy-MM-dd')}",
-                                            "body": {
-                                                "contentType": "HTML",
-                                                "content": "<p>Guten Tag</p><p>Im Anhang finden Sie den aktuellen AI Apps Report vom <strong>@{utcNow('dd.MM.yyyy')}</strong>.</p><p>Enthaltene Kategorien:<br>- Generative AI<br>- AI - Model Provider<br>- AI - MCP Server</p><p>Anzahl gefundene Apps: <strong>@{length(body('Filter_AI_Apps'))}</strong></p><br><p>Diese E-Mail wurde automatisch generiert.</p>"
-                                            },
-                                            "toRecipients": "@variables('EmailRecipients')",
-                                            "attachments": [
-                                                {
-                                                    "@@odata.type": "#microsoft.graph.fileAttachment",
-                                                    "name": "AI_Apps_@{utcNow('yyyy-MM-dd')}.csv",
-                                                    "contentType": "text/csv",
-                                                    "contentBytes": "@{base64(outputs('Compose_CSV'))}"
-                                                }
+                            "Check_First_Of_Month": {
+                                "type": "If",
+                                "expression": {
+                                    "and": [
+                                        {
+                                            "equals": [
+                                                "@dayOfMonth(utcNow())",
+                                                1
                                             ]
-                                        },
-                                        "saveToSentItems": false
+                                        }
+                                    ]
+                                },
+                                "actions": {
+                                    "Create_CSV_Rows": {
+                                        "type": "Select",
+                                        "inputs": {
+                                            "from": "@body('Filter_AI_Apps')",
+                                            "select": "@{item()?['AppName']},@{item()?['AppId']},@{item()?['Category']},@{item()?['RiskScore']},@{item()?['Users']},@{item()?['Devices']},@{item()?['Transactions']},@{item()?['downloadNetworkTrafficInBytes']},@{item()?['Domains']},@{item()?['LastSeen']}"
+                                        }
                                     },
-                                    "authentication": {
-                                        "type": "ManagedServiceIdentity",
-                                        "audience": "https://graph.microsoft.com"
+                                    "Compose_CSV": {
+                                        "type": "Compose",
+                                        "inputs": "AppName,AppId,Category,RiskScore,Users,Devices,Transactions,DownloadTrafficBytes,Domains,LastSeen\n@{join(body('Create_CSV_Rows'), '\n')}",
+                                        "runAfter": {
+                                            "Create_CSV_Rows": [
+                                                "Succeeded"
+                                            ]
+                                        }
+                                    },
+                                    "Send_Email_Graph": {
+                                        "type": "Http",
+                                        "inputs": {
+                                            "uri": "https://graph.microsoft.com/v1.0/users/noreply-azureautomation@fhnw.ch/sendMail",
+                                            "method": "POST",
+                                            "headers": {
+                                                "Content-Type": "application/json"
+                                            },
+                                            "body": {
+                                                "message": {
+                                                    "subject": "AI Apps Report - @{utcNow('yyyy-MM-dd')}",
+                                                    "body": {
+                                                        "contentType": "HTML",
+                                                        "content": "<p>Guten Tag</p><p>Im Anhang finden Sie den aktuellen AI Apps Report vom <strong>@{utcNow('dd.MM.yyyy')}</strong>.</p><p>Enthaltene Kategorien:<br>- Generative AI<br>- AI - Model Provider<br>- AI - MCP Server</p><p>Anzahl gefundene Apps: <strong>@{length(body('Filter_AI_Apps'))}</strong></p><br><p>Diese E-Mail wurde automatisch generiert.</p>"
+                                                    },
+                                                    "toRecipients": "@variables('EmailRecipients')",
+                                                    "attachments": [
+                                                        {
+                                                            "@@odata.type": "#microsoft.graph.fileAttachment",
+                                                            "name": "AI_Apps_@{utcNow('yyyy-MM-dd')}.csv",
+                                                            "contentType": "text/csv",
+                                                            "contentBytes": "@{base64(outputs('Compose_CSV'))}"
+                                                        }
+                                                    ]
+                                                },
+                                                "saveToSentItems": false
+                                            },
+                                            "authentication": {
+                                                "type": "ManagedServiceIdentity",
+                                                "audience": "https://graph.microsoft.com"
+                                            }
+                                        },
+                                        "runAfter": {
+                                            "Compose_CSV": [
+                                                "Succeeded"
+                                            ]
+                                        }
                                     }
                                 },
+                                "else": {
+                                    "actions": {}
+                                },
                                 "runAfter": {
-                                    "Compose_CSV": ["Succeeded"]
+                                    "Filter_AI_Apps": [
+                                        "Succeeded"
+                                    ]
                                 }
                             }
                         },
-                        "else": { "actions": {} }
+                        "else": {
+                            "actions": {}
+                        }
                     }
                 },
                 "runAfter": {
-                    "Check_First_Of_Month": ["Succeeded"]
+                    "Initialize_BatchIndex": [
+                        "Succeeded"
+                    ]
                 }
             }
         },
