@@ -31,10 +31,11 @@ jobs:
 
           jq -n \
             --arg date "$DATE" \
+            --arg time "$(date +%H:%M:%S)" \
             --argjson views "$VIEWS" \
             --argjson clones "$CLONES" \
             --argjson referrers "$REFERRERS" \
-            '{date: $date, views: $views, clones: $clones, referrers: $referrers}' \
+            '{date: $date, last_updated: $time, views: $views, clones: $clones, referrers: $referrers}' \
             > "traffic/$DATE.json"
 
       - name: Push to private stats repo
