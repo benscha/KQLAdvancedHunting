@@ -1,7 +1,7 @@
 name: Traffic Archive
 on:
-  schedule:
-    - cron: '21 * * * *'
+  repository_dispatch:
+    types: [hourly_sync]
   workflow_dispatch:
 
 jobs:
