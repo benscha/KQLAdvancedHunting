@@ -1,4 +1,5 @@
 name: Traffic Archive
+
 on:
   repository_dispatch:
     types: [hourly_sync]
@@ -43,9 +44,10 @@ jobs:
           # Privates Repo auschecken
           git clone https://x-access-token:$TRAFFIC_PAT@github.com/benscha/stats.git stats-repo
 
-          # Daten kopieren
-          cp traffic/*.json stats-repo/traffic/ 2>/dev/null || true
+          # Zielordner im ausgecheckten Repo erstellen
           mkdir -p stats-repo/traffic
+
+          # Daten kopieren
           cp traffic/*.json stats-repo/traffic/
 
           # Committen und pushen
@@ -53,5 +55,6 @@ jobs:
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add traffic/
-          git diff --cached --quiet || git commit -m "chore: traffic archive $(date +%Y-%m-%d)"
-          git push
+          
+          # Nur committen und pushen, wenn sich tatsaechlich etwas geaendert hat
+          git diff --cached --quiet || (git commit -m "chore: traffic archive $(date +%Y-%m-%d)" && git push)
