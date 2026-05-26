@@ -9,19 +9,23 @@ This repository contains a curated collection of **KQL (Kusto Query Language) qu
 
 ---
 
-## 🔍 **What’s Inside?**
-- Practical **Advanced Hunting queries** for Microsoft 365 Defender
-- Security monitoring scripts for **Endpoint**, **Identity**, and **Cloud**
-- Incident Response-focused KQL examples
-- Optimized filters for tables like **DeviceProcessEvents**, **EmailEvents**, and **AlertEvidence**
+## 🔍 Capabilities & Coverage
+
+| Focus Area | Core Tables | Use Cases |
+| :--- | :--- | :--- |
+| 💻 **Endpoint Security** | `DeviceProcessEvents`, `DeviceNetworkEvents` | Process anomalies, persistence, living-off-the-land binaries |
+| 🔑 **Identity & Access** | `IdentityLogonEvents`, `AADSignInLogs` | Brute force, MFA bypass attempts, privilege escalation |
+| ☁️ **Cloud & Infrastructure**| `CloudAppEvents`, `OfficeActivity` | Data exfiltration, shadow IT, malicious app registrations |
+| 📧 **Email & Collaboration**| `EmailEvents`, `EmailUrlInfo` | Advanced phishing, business email compromise (BEC) |
+
+> 🛡️ **Incident Response Ready:** All queries are optimized for fast execution and direct deployment in the Microsoft Defender XDR or Sentinel console.
 
 ---
 
 ## ✅ **Why This Repository?**
 - Real-world **KQL examples** for proactive threat hunting
 - Easy customization for your own security scenarios
-- Keywords for better visibility:  
-  `KQL`, `Microsoft Defender`, `Advanced Hunting`, `Security Queries`, `Threat Detection`
+- a lot of ready ro use Queries 😎
 
 ---
 
