@@ -1,35 +1,39 @@
-
-# KQL Advanced Hunting Queries for Microsoft Defender and Sentinel
+# KQL Advanced Hunting Queries for Microsoft Defender and Microsoft Sentinel
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/benscha/KQLAdvancedHunting/main/KQLNinja.png" alt="KQLNinja" width="300"/></div>
+  <img src="https://raw.githubusercontent.com/benscha/KQLAdvancedHunting/main/KQLNinja.png" alt="KQL Advanced Hunting Queries for Microsoft Defender and Sentinel - KQLNinja Logo" width="300"/>
+</div>
 
 <div align="left">
-This repository contains a curated collection of **KQL (Kusto Query Language) queries** for **Microsoft Defender Advanced Hunting** and Sentinel, designed to help security analysts and IT administrators improve threat detection and incident response.
+
+Welcome to a curated collection of production-ready **KQL (Kusto Query Language) queries** for **Microsoft Defender XDR Advanced Hunting**, **Microsoft Sentinel SIEM**, and **Microsoft Purview**. This repository provides cybersecurity analysts, SOC teams, and incident responders with advanced cyber threat intelligence and detection engineering logic to hunt for sophisticated cyber attacks.
 
 ---
 
-## 🔍 Capabilities & Coverage
+## 🔍 Capabilities, Cyber Threat Hunting Tables & Coverage
 
-| Focus Area | Core Tables | Use Cases |
+| Focus Area | Core & Advanced Tables | Use Cases & Detection Scope |
 | :--- | :--- | :--- |
-| 💻 **Endpoint Security** | `DeviceProcessEvents`, `DeviceNetworkEvents` | Process anomalies, persistence, living-off-the-land binaries |
-| 🔑 **Identity & Access** | `IdentityLogonEvents`, `AADSignInLogs` | Brute force, MFA bypass attempts, privilege escalation |
-| ☁️ **Cloud & Infrastructure**| `CloudAppEvents`, `OfficeActivity` | Data exfiltration, shadow IT, malicious app registrations |
-| 📧 **Email & Collaboration**| `EmailEvents`, `EmailUrlInfo` | Advanced phishing, business email compromise (BEC) |
+| 📊 **Behavior Analytics & Baseline Hunting** | `SigninLogs`, `AADSignInLogs`, `BehaviorAnalytics`, `IdentityLogonEvents` | Advanced UEBA, historic sign-in baselining, anomaly detection via multi-vector analysis (uncommon IP + User-Agent + OS combinations), identifying first-time or rare account activities. |
+| 💻 **Endpoint Security & Vulnerabilities** | `DeviceProcessEvents`, `DeviceFileEvents`, `DeviceNetworkEvents`, `DeviceRegistryEvents`, `DeviceInfo` | Process anomalies, Living-off-the-Land (LotL), unauthorized Debugger Registration (IFEO), CVE/Exploit detection (e.g., Windows Shell Security Feature Bypasses), VS Code extension hunting. |
+| 🔑 **Identity & Access Management** | `IdentityLogonEvents`, `AADSignInLogs`, `SigninLogs`, `IdentityInfo` | Brute force, MFA bypass, AiTM phishing link click correlations, privilege escalation, cross-tenant identity validation. |
+| ☁️ **Cloud, Governance & DevOps** | `CloudAppEvents`, `OfficeActivity`, `AuditLogs`, `AzureDevOpsAuditing` | Data exfiltration, shadow IT, malicious app registrations, high-privilege takeover (Service Principal abuse), Azure DevOps critical configuration changes. |
+| 📧 **Email & Collaboration** | `EmailEvents`, `EmailUrlInfo`, `EmailAttachmentInfo`, `CloudAppEvents` (Teams) | Advanced phishing, Business Email Compromise (BEC), malicious URL/Domain hits in Microsoft Teams messages. |
 
-> 🛡️ **Incident Response Ready:** All queries are optimized for fast execution and direct deployment in the Microsoft Defender XDR or Sentinel console.
+> 🛡️ **Incident Response Ready:** All SIEM detection rules and hunting queries are optimized for fast execution, high performance, and direct deployment in the Microsoft Defender XDR portal or Microsoft Sentinel Log Analytics workspace.
 
 ---
 
-## ✅ **Why This Repository?**
-- Real-world **KQL examples** for proactive threat hunting
-- Easy customization for your own security scenarios
-- a lot of ready ro use Queries 😎
+## 🚀 Why Use This KQL Detection Engineering Repository?
+
+* **Production-Ready SIEM Content & Field-Tested:** Real-world KQL queries designed for proactive threat hunting, minimizing false positives while catching advanced persistent threats (APTs) and modern attack techniques.
+* **Advanced UEBA & Behavior Detection Logics:** Goes beyond simple static filtering. Includes complex multi-vector baselining, historical UEBA scoring, and cross-platform log correlation.
+* **Broad Enterprise Cloud Ecosystem Coverage:** Comprehensive cyber security templates covering Microsoft Defender XDR (`Device*` events), Microsoft Entra ID (Azure AD), Microsoft 365 Cloud Apps, Azure DevOps CI/CD pipelines, and emerging CVE exploits.
+* **Built for SOC Customization:** Clean, modular code structures with easily adjustable timeframes, thresholds, and variables to fit your institutional security baseline instantly.
 
 ---
 
 ## 🔗 Connect with Me
-Follow me on LinkedIn: https://www.linkedin.com/in/benjamin-zulliger/?follow
+Follow me on LinkedIn for regular cybersecurity updates and KQL tips: https://www.linkedin.com/in/benjamin-zulliger/?follow
 
-Maintained by Benjamin Zulliger
+Maintained by **Benjamin Zulliger** – Cybersecurity Expert & Detection Engineer.
