@@ -1,4 +1,4 @@
-# KQL Advanced Hunting Queries for Microsoft Defender and Microsoft Sentinel
+# KQL Threat Hunting Queries — Microsoft Sentinel & Defender XDR | Detection Engineering
 
 <div align="center">
   <img src="https://raw.githubusercontent.com/benscha/KQLAdvancedHunting/main/KQLNinja.png" alt="KQL Advanced Hunting Queries for Microsoft Defender and Sentinel - KQLNinja Logo" width="300"/>
