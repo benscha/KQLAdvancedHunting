@@ -38,4 +38,4 @@ Welcome to a curated collection of production-ready **KQL (Kusto Query Language)
 * ⭐ **Support the Project:** If these KQL queries helped you improve your detections, please leave a star! It helps others discover this repository and supports open-source security tools.
 * 👥 **Connect on LinkedIn:** Follow me for regular cybersecurity updates, community insights, and KQL tips: https://www.linkedin.com/in/benjamin-zulliger/?follow
 
-Maintained with 🛡️ by **Benjamin Zulliger** – Cybersecurity Expert & Detection Engineer.
+Maintained with 🛡️ by **Benjamin Zulliger** 
