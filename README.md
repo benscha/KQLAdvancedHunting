@@ -8,6 +8,8 @@
 
 Welcome to a curated collection of production-ready **KQL (Kusto Query Language) queries** for **Microsoft Defender XDR Advanced Hunting**, **Microsoft Sentinel SIEM**, and **Microsoft Purview**. This repository provides cybersecurity analysts, SOC teams, and incident responders with advanced cyber threat intelligence and detection engineering logic to hunt for sophisticated cyber attacks.
 
+🌐 **Featured In:** Queries from this repository are proudly indexed and featured on leading community platforms, including **[kqlsearch.com](https://kqlsearch.com)** and **[detections.ai](https://detections.ai)**, alongside other trusted industry detection resources.
+
 ---
 
 ## 🔍 Capabilities, Cyber Threat Hunting Tables & Coverage
