@@ -631,7 +631,7 @@ Before saving, replace the following values:
                                 "type": "Query",
                                 "inputs": {
                                     "from": "@body('Select_Transform')",
-                                    "where": "@or(or(or(contains(toLower(string(coalesce(item()?['category'], ''))), 'generative'), contains(toLower(string(coalesce(item()?['category'], ''))), 'model provider')), contains(toLower(string(coalesce(item()?['category'], ''))), 'mcp')), contains(toLower(string(coalesce(item()?['category'], ''))), 'ai - '))"
+                                    "where": "@or(or(or(contains(toLower(string(coalesce(item()?['category'], ''))), 'generative'), contains(toLower(string(coalesce(item()?['category'], ''))), 'aiModelProvider')), contains(toLower(string(coalesce(item()?['category'], ''))), 'mcp')), contains(toLower(string(coalesce(item()?['category'], ''))), 'ai - '))"
                                 },
                                 "runAfter": {
                                     "Post_In_Batches": [
