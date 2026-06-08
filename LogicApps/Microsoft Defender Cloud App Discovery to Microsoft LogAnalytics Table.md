@@ -906,6 +906,7 @@ CloudAppRiskCatalog_CL
 ### Piechart of AI Agents with Riskscore (added 2026-06-08)
 <img width="649" height="336" alt="image" src="https://github.com/user-attachments/assets/e0ab306c-b1fd-4419-823f-99e7bbc2735b" />
 
+ 
 ```kusto
 let SourceData = 
     ExposureGraphEdges
@@ -925,6 +926,7 @@ SourceData
 | project DiagrammLabel, Count
 | render piechart with (title="AI Agents Overview")
 ```
+ 
 ---
 
 ## Troubleshooting
