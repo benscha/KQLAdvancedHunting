@@ -301,6 +301,9 @@ Before saving, replace the following values:
 ```json
 {
     "definition": {
+        "metadata": {
+            "notes": {}
+        },
         "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
         "contentVersion": "1.0.0.0",
         "triggers": {
