@@ -33,13 +33,13 @@ DeviceRegistryEvents
          LowerValueName = tolower(RegistryValueName), 
          LowerValueData = tolower(RegistryValueData)
 | extend AttackVector = case(
-    // 1. Defender / MDE Telemetry Disruption & Offboarding
+    // Defender / MDE Telemetry Disruption & Offboarding
     LowerKey has "advanced threat protection" and LowerValueName == "latency" and LowerValueData == "demo", "MDE Rogue Onboarding/Offboarding Attempt",
     LowerKey has "datacollection" and LowerValueName == "allowtelemetry" and LowerValueData == "0", "Disabling Windows Diagnostic Telemetry (DiagTrack)",
     LowerKey has "windows defender" and LowerKey has "policy manager" and LowerValueName == "asrrules" and LowerValueData has "=0", "Disabling Defender Attack Surface Reduction Rules",
-    // 2. BITS Abuse for Inactivity Timeouts (Persistence)
+    // BITS Abuse for Inactivity Timeouts (Persistence)
     LowerKey has "windows" and LowerKey has "bits" and (LowerValueName == "jobinactivitytimeout" or LowerValueName == "maxdownloadtime"), "Suspicious BITS Timeout Modification for Persistence",
-    // 3. Windows Update Hijacking (Evasion)
+    // Windows Update Hijacking (Evasion)
     LowerKey has "windows" and LowerKey has "windowsupdate" and (LowerValueName == "wuserver" or LowerValueName == "wustatusserver"), "Hijacking Windows Update Server Location",
     LowerKey has "windows" and LowerKey has "windowsupdate" and LowerKey has "au" and LowerValueName == "auoptions" and LowerValueData == "1", "Disabling Automatic Windows Updates", 
     "Unknown / Check Context"
