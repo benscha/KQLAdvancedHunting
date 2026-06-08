@@ -22,8 +22,6 @@ How It Works
 Threat Hunting Value
 This query is designed for proactive threat hunting rather than real-time alerting due to the resource-intensive nature of the 7-day network join and the FileProfile() API invocation. It is highly effective at discovering targeted supply-chain attacks, rogue lookalike extensions (typosquatting), or custom malicious extensions introduced to developer workstations.
 
-#### Risk
-Defense Evasion
 
 #### Author <Optional>
 - **Name: Benjamin Zulliger**
