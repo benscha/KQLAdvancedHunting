@@ -900,6 +900,28 @@ CloudAppRiskCatalog_CL
 | render piechart with (title="Datenverkehr nach Kategorie (in GB)")
 ```
 
+### Piechart of AI Agents with Riskscore (added 2026-06-08)
+<img width="649" height="336" alt="image" src="https://github.com/user-attachments/assets/e0ab306c-b1fd-4419-823f-99e7bbc2735b" />
+
+```kusto
+let SourceData = 
+    ExposureGraphEdges
+    | where SourceNodeLabel == "endpointAiAgent"
+    | summarize Count = count() by SourceNodeName
+    | extend FirstWordSource = tolower(split(SourceNodeName, " ")[0])
+    | extend DummyKey = 1;
+let Catalog = 
+    CloudAppRiskCatalog_CL 
+    | extend FirstWordCatalog = tolower(split(AppName, " ")[0])
+    | extend DummyKey = 1;
+SourceData
+| join kind=inner Catalog on DummyKey
+| where AppName has FirstWordSource or SourceNodeName has FirstWordCatalog
+| summarize arg_max(Count, *) by SourceNodeName
+| extend DiagrammLabel = strcat(SourceNodeName, " | Risk: ", RiskScore, " | (", Count, "x)")
+| project DiagrammLabel, Count
+| render piechart with (title="AI Agents Overview")
+```
 ---
 
 ## Troubleshooting
