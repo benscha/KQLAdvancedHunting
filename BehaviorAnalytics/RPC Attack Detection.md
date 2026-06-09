@@ -1,4 +1,4 @@
-# *RPC Attack Detection *
+# *RPC Attack Detection* 
 
 ## Query Information
 
