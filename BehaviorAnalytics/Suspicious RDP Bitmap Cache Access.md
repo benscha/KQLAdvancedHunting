@@ -1,4 +1,4 @@
-# *NTLM Network Logon Anomalies (Lateral Movement)*
+# *Suspicious RDP Bitmap Cache Access*
 
 ## Query Information
 
