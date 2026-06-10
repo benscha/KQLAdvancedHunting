@@ -61,5 +61,6 @@ let HighRiskExtension = DeviceFileEvents
 union SuspiciousExtension, HighRiskExtension
 | invoke FileProfile(SHA256)
 | where GlobalPrevalence < 10000
+| where not(IsCertificateValid == 1 and SignatureState == "SignedValid" and Issuer == "Microsoft Code Signing PCA 2024")
 ```
 
