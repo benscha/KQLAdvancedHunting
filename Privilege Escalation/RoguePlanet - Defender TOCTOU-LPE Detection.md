@@ -76,12 +76,12 @@ let JunctionCreation = DeviceProcessEvents
 | where ProcessCommandLine has_any (SensitivePaths)
 | extend Signal = "NTFS_Junction_Created_cmd"
 | project Timestamp, DeviceName, DeviceId,
-	AccountName, AccountSid,
-	TargetPath = extract(@"mklink\s+/[jJ]\s+[\""]?([^\s\""">]+)", 1, ProcessCommandLine),
-	CommandLine = ProcessCommandLine,
-	FileName,
-	InitiatingProcessCommandLine = InitiatingProcessCommandLine,
-	Signal;
+    AccountName, AccountSid,
+    TargetPath = extract(@"mklink\s+/[jJ]\s+[\""]?([^\s\"">]+)", 1, ProcessCommandLine),
+    CommandLine = ProcessCommandLine,
+    FileName,
+    InitiatingProcessCommandLine = InitiatingProcessCommandLine,
+    Signal;
 // --- NTFS junction point via PowerShell ---
 let JunctionCreationPS = DeviceProcessEvents
 | where Timestamp > ago(7d)
