@@ -1,4 +1,4 @@
-# *High Volume Azure DevOps Search Activity*
+# *Azure DevOps High Volume Search Activity*
 
 ## Query Information
 
