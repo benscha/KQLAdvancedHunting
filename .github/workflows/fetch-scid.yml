@@ -3,7 +3,7 @@ name: Fetch SCID CSV
 
 on:
   schedule:
-    - cron: '0 6 * * 1'  # Jeden Montag 06:00
+    - cron: '0 6 * * 1' 
   workflow_dispatch:
 
 jobs:
@@ -16,7 +16,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
 
       - name: Install Playwright
         run: |
