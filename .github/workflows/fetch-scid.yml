@@ -22,7 +22,7 @@ jobs:
           npx playwright install chromium --with-deps
 
       - name: Export SCID CSV
-        run: node fetch-scid.js
+        run: node .github/workflows/fetch-scid.js
 
       - name: Commit CSV
         run: |
