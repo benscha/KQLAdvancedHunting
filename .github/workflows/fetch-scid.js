@@ -18,8 +18,8 @@ const path = require('path');
 		})()
 	]);
 
-	const csvPath = path.join('data', 'scid.csv');
-	fs.mkdirSync('data', { recursive: true });
+	const csvPath = path.join('MISC', 'scid.csv');
+	fs.mkdirSync('MISC', { recursive: true });
 	await download.saveAs(csvPath);
 
 	console.log('CSV saved to', csvPath);
