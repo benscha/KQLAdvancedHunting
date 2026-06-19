@@ -41,7 +41,6 @@ let RootDomainRecon =
 	| where BaseObject matches regex @"^DC="		  // Root domain, no OU= prefix
 	| where SearchFilter has "(objectClass=user)"
 	| project TimeGenerated, FromDevice, IPAddress, SourceOS, SourceSid, BaseObject, SearchFilter, ReportId;
-
 // Lateral Movement after Recon
 // Authentication to a new host within the time window
 let SignalA =
@@ -53,7 +52,6 @@ let SignalA =
 	| summarize LateralTargets = dcount(DestinationDeviceName) by AccountSid, DeviceName
 	| where LateralTargets >= 2  // at least 2 different targets
 	| project DeviceName, AccountSid, LateralTargets;
-
 // Kerberoasting — TGS requests for multiple SPNs
 let SignalB =
 	IdentityQueryEvents
@@ -69,7 +67,6 @@ let SignalB =
 	| summarize SpnQueryCount = count() by FromDevice
 	| where SpnQueryCount >= 2
 	| project FromDevice, SpnQueryCount;
-
 // Sensitive LDAP filters
 let SignalC =
 	IdentityQueryEvents
@@ -90,7 +87,6 @@ let SignalC =
 	)
 	| summarize SensitiveFilterCount = count(), SensitiveFilters = make_set(SearchFilter, 5) by FromDevice
 	| project FromDevice, SensitiveFilterCount, SensitiveFilters;
-
 // Join + Scoring
 RootDomainRecon
 | summarize
