@@ -29,11 +29,8 @@ This rule detects suspicious activities related to the 'oahd' process on macOS, 
 let SuspiciousOahdFileEvents = 
 	DeviceFileEvents
 	| where
-		// Writes in den Rosetta Translation Cache
 		(FolderPath startswith "/var/db/oah/" and ActionType in ("FileCreated", "FileModified"))
-		// Drop einer gefakten oahd-Binary ausserhalb des legitimen Pfads
 		or (FileName =~ "oahd" and FolderPath !startswith "/usr/libexec")
-		// Manipulation der LaunchDaemon plist
 		or (FileName =~ "com.apple.oahd.plist"
 			and FolderPath !in ("/System/Library/LaunchDaemons/", "/Library/LaunchDaemons/"))
 	| extend
@@ -41,19 +38,29 @@ let SuspiciousOahdFileEvents =
 		IsFakeBinary = FileName =~ "oahd" and FolderPath !startswith "/usr/libexec",
 		IsPlistHijack = FileName =~ "com.apple.oahd.plist"
 			and FolderPath !in ("/System/Library/LaunchDaemons/", "/Library/LaunchDaemons/")
+	| where isnotempty(InitiatingProcessSHA1)
+	| invoke FileProfile(InitiatingProcessSHA1, 1000)
 	| project
 		TimeGenerated,
 		DeviceName,
 		ActionType,
 		FileName,
 		FolderPath,
+		InitiatingProcessSHA1,
 		InitiatingProcessFileName,
 		InitiatingProcessFolderPath,
 		InitiatingProcessCommandLine,
 		InitiatingProcessAccountName,
 		IsCacheWrite,
 		IsFakeBinary,
-		IsPlistHijack;
+		IsPlistHijack,
+		GlobalPrevalence,
+		GlobalFirstSeen,
+		GlobalLastSeen,
+		Signer,
+		IsRootSignerMicrosoft,
+		SignatureState,
+		ThreatName;
 let SuspiciousOahdProcessEvents =
 	DeviceProcessEvents
 	| where FileName =~ "oahd"
@@ -84,13 +91,13 @@ let SuspiciousOahdProcessEvents =
 		IsSuspiciousParent,
 		HasSuspiciousArgs,
 		IsSuspiciousCachePath;
-// Korrelation: File-Event gefolgt von Process-Event auf demselben Device
 SuspiciousOahdFileEvents
 | join kind=inner (
 	SuspiciousOahdProcessEvents
 	| project-rename ProcessTime = TimeGenerated
 ) on DeviceName
 | where ProcessTime between (TimeGenerated .. (TimeGenerated + 15m))
+| where GlobalPrevalence < 5000
 | project
 	FileEventTime = TimeGenerated,
 	ProcessEventTime = ProcessTime,
@@ -105,6 +112,15 @@ SuspiciousOahdFileEvents
 	FileInitiatorPath = InitiatingProcessFolderPath,
 	FileInitiatorCmdLine = InitiatingProcessCommandLine,
 	DroppingAccountName = InitiatingProcessAccountName,
+	// FileProfile-Reputationsdaten
+	InitiatingProcessSHA1,
+	GlobalPrevalence,
+	GlobalFirstSeen,
+	GlobalLastSeen,
+	Signer,
+	IsRootSignerMicrosoft,
+	SignatureState,
+	ThreatName,
 	// Process-Side
 	SpawnedBinary = strcat(FolderPath1, FileName1),
 	SpawnCmdLine = ProcessCommandLine,
