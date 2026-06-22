@@ -22,79 +22,79 @@ This rule detects when a new WinGet package source is added from an unofficial U
 ## Defender XDR
 ```KQL
 let OfficialSources = dynamic([
-    "winget.azureedge.net",
-    "cdn.winget.microsoft.com"
+	"winget.azureedge.net",
+	"cdn.winget.microsoft.com"
 ]);
 let AppInstallerPolicyKey = "SOFTWARE\\Policies\\Microsoft\\Windows\\AppInstaller";
 // CLI source add
 let CliSourceAdd =
-    DeviceProcessEvents
-    | where FileName =~ "winget.exe"
-    | where ProcessCommandLine has_all ("source", "add")
-    | extend SourceName = extract(@"(?i)--name\s+(\S+)", 1, ProcessCommandLine)
-    | extend SourceUrl  = extract(@"(?i)--arg\s+(\S+)", 1, ProcessCommandLine)
-    | where not(SourceUrl has_any (OfficialSources))
-    | extend SignalType = "CLI_SourceAdd"
-    | extend RegistryKey = "", RegistryValueName = "", RegistryValueData = "";
+	DeviceProcessEvents
+	| where FileName =~ "winget.exe"
+	| where ProcessCommandLine has_all ("source", "add")
+	| extend SourceName = extract(@"(?i)--name\s+(\S+)", 1, ProcessCommandLine)
+	| extend SourceUrl  = extract(@"(?i)--arg\s+(\S+)", 1, ProcessCommandLine)
+	| where not(SourceUrl has_any (OfficialSources))
+	| extend SignalType = "CLI_SourceAdd"
+	| extend RegistryKey = "", RegistryValueName = "", RegistryValueData = "";
 // DSC / PowerShell COM
 let DscSourceAdd =
-    DeviceProcessEvents
-    | where FileName in~ ("powershell.exe", "pwsh.exe")
-    | where ProcessCommandLine has_any ("Microsoft.WinGet.DSC", "WinGetPackageSource", "Add-WinGetSource")
-    | where ProcessCommandLine has_any ("Add-WinGetSource", "Ensure", "Add")
-    | where not(ProcessCommandLine has_any (OfficialSources))
-    | extend SourceName = extract(@"(?i)Name\s*=\s*['""]?(\S+?)['""]?[\s,\)]", 1, ProcessCommandLine)
-    | extend SourceUrl  = extract(@"(?i)Argument\s*=\s*['""]?(\S+?)['""]?[\s,\)]", 1, ProcessCommandLine)
-    | extend SignalType = "DSC_SourceAdd"
-    | extend RegistryKey = "", RegistryValueName = "", RegistryValueData = "";
+	DeviceProcessEvents
+	| where FileName in~ ("powershell.exe", "pwsh.exe")
+	| where ProcessCommandLine has_any ("Microsoft.WinGet.DSC", "WinGetPackageSource", "Add-WinGetSource")
+	| where ProcessCommandLine has_any ("Add-WinGetSource", "Ensure", "Add")
+	| where not(ProcessCommandLine has_any (OfficialSources))
+	| extend SourceName = extract(@"(?i)Name\s*=\s*['""]?(\S+?)['""]?[\s,\)]", 1, ProcessCommandLine)
+	| extend SourceUrl  = extract(@"(?i)Argument\s*=\s*['""]?(\S+?)['""]?[\s,\)]", 1, ProcessCommandLine)
+	| extend SignalType = "DSC_SourceAdd"
+	| extend RegistryKey = "", RegistryValueName = "", RegistryValueData = "";
 // Registry AdditionalSources changes
 let RegAdditionalSources =
-    DeviceRegistryEvents
-    | where RegistryKey has AppInstallerPolicyKey
-    | where RegistryKey has "AdditionalSources"
-    | where ActionType in ("RegistryKeyCreated", "RegistryValueSet")
-    | extend SourceName = extract(@"AdditionalSources\\(\d+)", 1, RegistryKey)
-    | extend SourceUrl  = tostring(RegistryValueData)
-    | extend SignalType = "Reg_AdditionalSources"
-    | extend ProcessCommandLine = InitiatingProcessCommandLine;
+	DeviceRegistryEvents
+	| where RegistryKey has AppInstallerPolicyKey
+	| where RegistryKey has "AdditionalSources"
+	| where ActionType in ("RegistryKeyCreated", "RegistryValueSet")
+	| extend SourceName = extract(@"AdditionalSources\\(\d+)", 1, RegistryKey)
+	| extend SourceUrl  = tostring(RegistryValueData)
+	| extend SignalType = "Reg_AdditionalSources"
+	| extend ProcessCommandLine = InitiatingProcessCommandLine;
 // Policy enable additional sources
 let RegEnableAdditional =
-    DeviceRegistryEvents
-    | where RegistryKey has AppInstallerPolicyKey
-    | where RegistryValueName =~ "EnableAdditionalSources"
-    | where ActionType == "RegistryValueSet"
-    | where tolong(RegistryValueData) == 1
-    | extend SourceName = "", SourceUrl = ""
-    | extend SignalType = "Reg_PolicyManipulation_EnableAdditionalSources"
-    | extend ProcessCommandLine = InitiatingProcessCommandLine;
+	DeviceRegistryEvents
+	| where RegistryKey has AppInstallerPolicyKey
+	| where RegistryValueName =~ "EnableAdditionalSources"
+	| where ActionType == "RegistryValueSet"
+	| where tolong(RegistryValueData) == 1
+	| extend SourceName = "", SourceUrl = ""
+	| extend SignalType = "Reg_PolicyManipulation_EnableAdditionalSources"
+	| extend ProcessCommandLine = InitiatingProcessCommandLine;
 // Policy disable hash validation
 let RegHashOverride =
-    DeviceRegistryEvents
-    | where RegistryKey has AppInstallerPolicyKey
-    | where RegistryValueName =~ "EnableHashOverride"
-    | where ActionType == "RegistryValueSet"
-    | where tolong(RegistryValueData) == 1
-    | extend SourceName = "", SourceUrl = ""
-    | extend SignalType = "Reg_PolicyManipulation_EnableHashOverride"
-    | extend ProcessCommandLine = InitiatingProcessCommandLine;
+	DeviceRegistryEvents
+	| where RegistryKey has AppInstallerPolicyKey
+	| where RegistryValueName =~ "EnableHashOverride"
+	| where ActionType == "RegistryValueSet"
+	| where tolong(RegistryValueData) == 1
+	| extend SourceName = "", SourceUrl = ""
+	| extend SignalType = "Reg_PolicyManipulation_EnableHashOverride"
+	| extend ProcessCommandLine = InitiatingProcessCommandLine;
 union
-    CliSourceAdd,
-    DscSourceAdd,
-    RegAdditionalSources,
-    RegEnableAdditional,
-    RegHashOverride
+	CliSourceAdd,
+	DscSourceAdd,
+	RegAdditionalSources,
+	RegEnableAdditional,
+	RegHashOverride
 | project
-    Timestamp,
-    DeviceName,
-    AccountName,
-    SignalType,
-    SourceName,
-    SourceUrl,
-    RegistryKey,
-    RegistryValueName,
-    RegistryValueData,
-    ProcessCommandLine,
-    ReportId,
-    DeviceId
+	Timestamp,
+	DeviceName,
+	AccountName,
+	SignalType,
+	SourceName,
+	SourceUrl,
+	RegistryKey,
+	RegistryValueName,
+	RegistryValueData,
+	ProcessCommandLine,
+	ReportId,
+	DeviceId
 | sort by Timestamp desc
 ```
