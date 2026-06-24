@@ -31,9 +31,11 @@ let CliSourceAdd =
 	DeviceProcessEvents
 	| where FileName =~ "winget.exe"
 	| where ProcessCommandLine has_all ("source", "add")
-	| extend SourceName = extract(@"(?i)--name\s+(\S+)", 1, ProcessCommandLine)
-	| extend SourceUrl  = extract(@"(?i)--arg\s+(\S+)", 1, ProcessCommandLine)
-	| where not(SourceUrl has_any (OfficialSources))
+	// Filter direkt auf der CommandLine anwenden, um False Positives bei offiziellen Quellen zu verhindern
+	| where not(ProcessCommandLine has_any (OfficialSources))
+	// Regex angepasst für -n OR --name und -a OR --arg
+	| extend SourceName = extract(@"(?i)(?:--name|-n)\s+(\S+)", 1, ProcessCommandLine)
+	| extend SourceUrl  = extract(@"(?i)(?:--arg|-a)\s+(\S+)", 1, ProcessCommandLine)
 	| extend SignalType = "CLI_SourceAdd"
 	| extend RegistryKey = "", RegistryValueName = "", RegistryValueData = "";
 // DSC / PowerShell COM
@@ -55,6 +57,8 @@ let RegAdditionalSources =
 	| where ActionType in ("RegistryKeyCreated", "RegistryValueSet")
 	| extend SourceName = extract(@"AdditionalSources\\(\d+)", 1, RegistryKey)
 	| extend SourceUrl  = tostring(RegistryValueData)
+	// Falls die Registry-Daten eine offizielle Quelle enthalten, ausschliessen
+	| where not(SourceUrl has_any (OfficialSources))
 	| extend SignalType = "Reg_AdditionalSources"
 	| extend ProcessCommandLine = InitiatingProcessCommandLine;
 // Policy enable additional sources
