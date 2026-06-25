@@ -29,7 +29,7 @@ This rule detects potentially compromised accounts by identifying logins from ne
 // Aggregated per (User, CorrelationId): collapses Risk-Event-Lifecycle & Sub-Events
 let lookback	 = 2h;
 let historyStart = ago(29d);
-let historyEnd   = ago(lookback);
+let historyEnd   = ago(1d);
 let newAccountWindow = 60d;
 let NormalizeUA = (ua:string) {
 	tostring(
