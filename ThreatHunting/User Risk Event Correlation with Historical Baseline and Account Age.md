@@ -25,8 +25,10 @@ This rule detects potentially compromised accounts by identifying logins from ne
 
 ## Defender XDR
 ```KQL
-// Neue UserAgents / Locations je Anmeldesession – 29-Tage-Baseline + Account-Alter
-// Aggregiert pro (User, CorrelationId): kollabiert Risk-Event-Lifecycle & Sub-Events
+// New UserAgents / Locations per login session – 29-day baseline + account age
+// Aggregated per (User, CorrelationId): collapses Risk-Event-Lifecycle & Sub-Events
+// Note on Results: Boolean fields (e.g., AnyUANew, HasBaseline, IsNewAccount) 
+// will render as 1 for True and 0 for False in the results table.
 let lookback	 = 4h;
 let historyStart = ago(29d);
 let historyEnd   = ago(lookback);
