@@ -1,4 +1,4 @@
-# *User Risk Event Correlation with Historical Baseline and Account Age*
+# *User Risk Event Correlation with Historical Baseline*
 
 ## Query Information
 
