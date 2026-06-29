@@ -1,4 +1,4 @@
-# *Privileged Account Authentication Security Posture Audit*
+# *Privileged Account Authentication Method Audit*
 
 ## Query Information
 
