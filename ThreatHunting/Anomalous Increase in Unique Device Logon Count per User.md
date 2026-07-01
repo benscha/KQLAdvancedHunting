@@ -44,9 +44,9 @@ DeviceLogonEvents
 | where not(DeviceName matches regex ExcludedServersRegex)
 | where not(DeviceName matches regex ExcludedDCsRegex)
 | where not(DeviceName matches regex ExcludedAzADConnect)
-// Step 1: Track daily machine count and names per account
+// Track daily machine count and names per account
 | summarize DailyCount = dcount(DeviceName), DailyDevices = make_set(DeviceName) by AccountName, bin(TimeGenerated, 1d)
-// Step 2: Calculate baseline and aggregate all distinct Devices seen over the month
+// Calculate baseline and aggregate all distinct Devices seen over the month
 | summarize
 	AvgDailyDevices = avg(DailyCount),
 	MaxDailyDevices = max(DailyCount),
