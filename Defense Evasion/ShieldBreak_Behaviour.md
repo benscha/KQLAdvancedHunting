@@ -6,8 +6,7 @@
 
 | Technique ID | Title    | Link    |
 | ---  | --- | --- |
-| T1562.001	| Impair Defenses: Disable or Modify Tools | https://attack.mitre.org/techniques/T1562/001/ |
-| T1562.006	| Impair Defenses: Indicator Blocking	| https://attack.mitre.org/techniques/T1562/006/ |
+| T1685	| Disable or Modify Tools | https://attack.mitre.org/techniques/T1685/ |
 | T1574.001	| Hijack Execution Flow: DLL Search Order Hijacking	| https://attack.mitre.org/techniques/T1574/001/ | 
 | T1574.002	| Hijack Execution Flow: DLL Side-Loading	| https://attack.mitre.org/techniques/T1574/002/ |
 | T1055.001	| Process Injection: Dynamic-link Library Injection	| https://attack.mitre.org/techniques/T1055/001/ |
