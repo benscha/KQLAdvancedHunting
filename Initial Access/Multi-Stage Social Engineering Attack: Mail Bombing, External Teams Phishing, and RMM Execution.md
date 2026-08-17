@@ -32,7 +32,7 @@ let TeamsToRMMWindow   = 2h;    // Max allowed gap between Teams message and RMM
 let MinSenderDomains   = 20;    // Mail bombings typically spoof/use many sender domains
 // Internal domains 
 let InternalDomains = dynamic([
-    "fhnw.ch", "students.fhnw.ch", "mab-bs.ch"
+    "domain.ch", "students.domain.ch", "other-domain.ch"
 ]);
 let RMMProcesses = dynamic([
     "quickassist.exe", "teamviewer.exe", "anydesk.exe",
