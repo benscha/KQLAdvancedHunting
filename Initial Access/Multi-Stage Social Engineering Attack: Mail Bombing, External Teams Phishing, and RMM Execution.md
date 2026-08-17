@@ -24,23 +24,46 @@ This rule detects a multi-stage attack chain characterized by an email flooding 
 ## Defender XDR
 ```KQL
 // Config
-let Lookback           = 4h;    // Total search window
-let MailThreshold      = 100;   // Trigger threshold for mail count
-let MailTimeWindow     = 30m;   // Timeframe to hit the mail threshold
-let FloodToTeamsWindow = 2h;    // Max allowed gap between mail flood and Teams message
-let TeamsToRMMWindow   = 2h;    // Max allowed gap between Teams message and RMM execution
-let MinSenderDomains   = 20;    // Mail bombings typically spoof/use many sender domains
-// Internal domains 
+let Lookback           = 4h;
+let MailThreshold      = 100;
+let MailTimeWindow     = 30m;
+let FloodToTeamsWindow = 2h;
+let TeamsToRMMWindow   = 2h;
+let MinSenderDomains   = 20;
 let InternalDomains = dynamic([
     "domain.ch", "students.domain.ch", "other-domain.ch"
 ]);
-let RMMProcesses = dynamic([
+// Windows RMM binaries
+let RMMProcessesWin = dynamic([
     "quickassist.exe", "teamviewer.exe", "anydesk.exe",
     "screenconnect.client.exe", "screenconnect.clientservice.exe",
     "rustdesk.exe", "splashtop.exe", "logmein.exe",
     "ateraagent.exe", "syncro.exe", "supremo.exe"
 ]);
-// Detect mail flooding 
+// macOS RMM binaries 
+let RMMProcessesMac = dynamic([
+    "TeamViewer", "TeamViewer_Desktop", "TeamViewer_Service",
+    "AnyDesk", "RustDesk", "rustdesk",
+    "ScreenConnect Client", "ConnectWiseControl", "connectwisecontrol",
+    "SRStreamer", "Splashtop Streamer", "SplashtopStreamer",
+    "LogMeIn", "LMIGUIAgent", "GoToAssist",
+    "Supremo", "AteraAgent", "Syncro",
+    "ZohoAssist", "Zoho Assist", "ZA_Connect",
+    "NetSupport", "client32",
+    "remoting_me2me_host", "dwagent", "dwagsvc"
+]);
+// Vendor tokens for path matches in /Applications
+let RMMVendorsMac = dynamic([
+    "TeamViewer", "AnyDesk", "RustDesk", "ScreenConnect", "ConnectWise",
+    "Splashtop", "Supremo", "Zoho", "NetSupport", "LogMeIn", "GoToAssist",
+    "Atera", "Syncro", "DWAgent"
+]);
+// Native macOS remote access tools used by attackers
+let MacNativeBins = dynamic(["kickstart", "systemsetup", "screensharingd", "ARDAgent"]);
+let MacNativeArgs = dynamic(["-activate", "-setremotelogin on", "-configure", "-allowAccessFor"]);
+// MDM engines that legitimately run kickstart/systemsetup
+let MacMgmtParents = dynamic(["jamf", "jamfAgent", "jamfManagementService", "munki", "managedsoftwareupdate", "intunemdmagent"]);
+// Detect mail flooding
 let MailFloodedUsers =
     EmailEvents
     | where TimeGenerated > ago(Lookback)
@@ -51,7 +74,8 @@ let MailFloodedUsers =
     | where SenderDomains >= MinSenderDomains
     | summarize FirstFloodTime = min(Bucket), TotalFloodMails = sum(IncomingMails),
                 DistinctSenderDomains = max(SenderDomains)
-        by TargetUpn = tolower(RecipientEmailAddress);
+        by TargetUpn = tolower(RecipientEmailAddress)
+    | extend UserKeys = pack_array(TargetUpn, tostring(split(TargetUpn, "@")[0]));
 // Find Teams messages sent from external addresses
 let ExternalTeamsChats =
     MessageEvents
@@ -70,18 +94,43 @@ let ExternalTeamsChats =
               ExternalSender = SenderAddress, ExternalSenderDomain = SenderDomain,
               IsExternalThread, IsOwnedThread, ThreadId, ThreadType,
               ChatSubject = Subject, DeliveryAction;
-// Track RMM execution 
+// OS platform enrichment
+let DevicePlatform =
+    DeviceInfo
+    | where TimeGenerated > ago(Lookback)
+    | summarize arg_max(TimeGenerated, OSPlatform) by DeviceId
+    | project DeviceId, OSPlatform;
+// Track RMM execution (Windows + macOS)
 let RMMExecutions =
     DeviceProcessEvents
     | where TimeGenerated > ago(Lookback)
-    | where FileName in~ (RMMProcesses) or InitiatingProcessFileName in~ (RMMProcesses)
-    | project RMMTime = TimeGenerated, DeviceName, TargetUpn = tolower(AccountUpn),
-              FileName, ProcessCommandLine, InitiatingProcessFileName;
+    | extend MacPathHit = FolderPath contains "/Applications/" and FolderPath has_any (RMMVendorsMac)
+    | extend MacNativeHit = FileName in~ (MacNativeBins)
+                            and ProcessCommandLine has_any (MacNativeArgs)
+                            and InitiatingProcessFileName !in~ (MacMgmtParents)
+    | where FileName in~ (RMMProcessesWin) or InitiatingProcessFileName in~ (RMMProcessesWin)
+         or FileName in~ (RMMProcessesMac) or InitiatingProcessFileName in~ (RMMProcessesMac)
+         or MacPathHit
+         or MacNativeHit
+    | extend RMMProcess = case(
+          FileName in~ (RMMProcessesWin) or FileName in~ (RMMProcessesMac) or MacNativeHit, FileName,
+          MacPathHit, FileName,
+          InitiatingProcessFileName)
+    | extend AccessMethod = case(
+          MacNativeHit, "macOS native remote access enabled",
+          "Third-party RMM")
+    | lookup kind=leftouter DevicePlatform on DeviceId
+    | extend UserKey = tolower(iff(isnotempty(AccountUpn), AccountUpn, AccountName))
+    | where isnotempty(UserKey)
+    | project RMMTime = TimeGenerated, DeviceName, DeviceId, OSPlatform, UserKey,
+              RMMProcess, AccessMethod, FileName, FolderPath,
+              ProcessCommandLine, InitiatingProcessFileName;
 // Correlation
 MailFloodedUsers
 | join kind=inner ExternalTeamsChats on TargetUpn
 | where TeamsTime >= FirstFloodTime and TeamsTime <= FirstFloodTime + FloodToTeamsWindow
-| join kind=inner RMMExecutions on TargetUpn
+| mv-expand UserKey = UserKeys to typeof(string)
+| join kind=inner RMMExecutions on UserKey
 | where RMMTime >= TeamsTime and RMMTime <= TeamsTime + TeamsToRMMWindow
 | summarize FloodStartTime        = min(FirstFloodTime),
             MailVolume            = max(TotalFloodMails),
@@ -92,8 +141,9 @@ MailFloodedUsers
             ChatSubjects          = make_set(ChatSubject, 5),
             ThreadTypes           = make_set(ThreadType, 5),
             RMMExecutionTime      = min(RMMTime),
+            FolderPaths           = make_set(FolderPath, 5),
             CommandLines          = make_set(ProcessCommandLine, 5)
-    by TargetUpn, DeviceName, RMMProcess = FileName
+    by TargetUpn, DeviceName, Platform = coalesce(OSPlatform, "unknown"), RMMProcess, AccessMethod
 | extend Verdict = "Social engineering chain: Mail flood, external Teams chat, RMM launch"
 | sort by RMMExecutionTime desc
 ```
