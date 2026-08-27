@@ -14,13 +14,13 @@
 
 Detects non-AI assistant processes accessing sensitive Claude Code, Cursor, Continue, Aider, Codeium, or Windsurf data paths. The query prioritizes explicit file collection actions, secret-focused searches, recursive enumeration, and access to another user's AI assistant data while suppressing known Claude Code and shared development environment activity.
 
-
 #### Author <Optional>
 - **Name: Benjamin Zulliger**
 - **Github: https://github.com/benscha/KQLAdvancedHunting**
 - **LinkedIn: https://www.linkedin.com/in/benjamin-zulliger/**
 
-
+#### References
+- https://www.linkedin.com/posts/mauricefielenbach_threatintel-dfir-cybersecurity-share-7468712997298016256-Rs6h/?utm_source=social_share_send&utm_medium=ios_app&rcm=ACoAAA3PxAIBcfr6M0unx3xMtHTyCNuehMi3uNQ thx to Maurice Fielenbach
 
 ## Defender XDR
 ```KQL
