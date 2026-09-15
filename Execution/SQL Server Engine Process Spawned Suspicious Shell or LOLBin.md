@@ -34,9 +34,9 @@ let ShellAndLolbins = dynamic([
 "python.exe", "python3.exe", "net.exe", "net1.exe", "reg.exe"
 ]);
 let KnownGood = dynamic([
-"wmic logicaldisk",					    // Disk monitoring
-"haimportdatabasename",					// AlwaysOn / HA rename
-"get-foldersize.ps1"					// Maintenance script
+"wmic logicaldisk",                      // Disk monitoring
+"haimportdatabasename",				    // AlwaysOn / HA rename
+"get-foldersize.ps1"				    // Maintenance script
 ]);
 DeviceProcessEvents
 | where Timestamp > ago(LookBack)
