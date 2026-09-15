@@ -19,7 +19,7 @@ Detects suspicious co-loading of 'MpClient.dll' and 'cldapi.dll' by non-standard
 - **LinkedIn: https://www.linkedin.com/in/benjamin-zulliger/**
 
 
-## Defender XDR
+## Defender XDR 
 ```KQL
 //Suspicious co-loading of MpClient.dll and cldapi.dll (RoguePlanet/ShieldBreak/ShieldCrash chain)
 let lookback = 1d;
