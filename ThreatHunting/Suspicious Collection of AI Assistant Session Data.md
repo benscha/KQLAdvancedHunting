@@ -12,7 +12,7 @@
 
 #### Description
 
-Detects non-AI assistant processes accessing sensitive Claude Code, Cursor, Continue, Aider, Codeium, or Windsurf data paths. The query prioritizes explicit file collection actions, secret-focused searches, recursive enumeration, and access to another user's AI assistant data while suppressing known Claude Code and shared development environment activity.
+Detects non-AI assistant processes accessing sensitive Claude Code, Cursor, Continue, Aider, Codeium, or Windsurf data paths. The query prioritizes explicit file collection actions, secret-focused searches, recursive enumeration, and access to another user's AI assistant data while suppressing known Claude Code and shared development environment activity. 
 
 #### Author <Optional>
 - **Name: Benjamin Zulliger**
