@@ -1,6 +1,6 @@
 # *Suspicious External Network Connection to Malicious ASN with Rare File Execution*
 
-## Query Information
+## Query Information 
 
 #### MITRE ATT&CK Technique(s)
 
