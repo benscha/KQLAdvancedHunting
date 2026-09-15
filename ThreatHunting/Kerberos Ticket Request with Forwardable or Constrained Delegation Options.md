@@ -11,7 +11,7 @@
 
 #### Description
 
-This rule detects potential account compromise or lateral movement by monitoring for significant spikes in the number of unique devices a single user account is logging into. It calculates a rolling baseline of daily device usage per account over the last 30 days and triggers an alert when an account's maximum daily unique device count exceeds its average by more than 5 times, with a minimum threshold of 10 unique devices, excluding known system accounts and infrastructure servers.
+This rule detects potential account compromise or lateral movement by monitoring for significant spikes in the number of unique devices a single user account is logging into. It calculates a rolling baseline of daily device usage per account over the last 30 days and triggers an alert when an account's maximum daily unique device count exceeds its average by more than 5 times, with a minimum threshold of 10 unique devices, excluding known system accounts and infrastructure servers. 
 
 
 #### Author <Optional>
