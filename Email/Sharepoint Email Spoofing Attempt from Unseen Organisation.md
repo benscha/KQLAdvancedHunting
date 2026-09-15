@@ -49,3 +49,30 @@ EmailEvents
 | extend OrigSenderFromDomain = tostring(split(OrigSenderFromAddress, "@")[1])
 | where OrigSenderFromDomain in (filteredDomains)
 ```
+
+Second Detection Option
+```KQL
+let knownOrgs = EmailEvents
+| where TimeGenerated between (ago(30d) .. ago(1d))
+| where SenderFromAddress == "no-reply@sharepointonline.com"
+| where InternetMessageId startswith "<Share"
+| extend OrigSenderFromAddress = extract(@"<([^>]+)>", 1, tostring(Cc))
+| extend OrigSenderFromDomain = tostring(split(OrigSenderFromAddress, "@")[1])
+| summarize count() by OrigSenderFromDomain;
+let OwnMailDomains = IdentityInfo
+| where isnotempty( CompanyName)
+| where TimeGenerated > ago(14d)
+| summarize arg_max(TimeGenerated, *) by AccountUpn
+| extend UserDomain = tolower(tostring(split(AccountUpn, "@")[1]))
+| where isnotempty( UserDomain) and UserDomain !endswith "onmicrosoft.com"
+| distinct UserDomain;
+EmailEvents
+| where TimeGenerated >ago(8h)
+| where EmailDirection == "Inbound" and DeliveryAction != "Junked"
+| where RecipientDomain in~ (OwnMailDomains)
+| where SenderFromAddress == "no-reply@sharepointonline.com"
+| where InternetMessageId startswith "<Share"
+| extend OrigSenderFromAddress = extract(@"<([^>]+)>", 1, tostring(Cc))
+| extend OrigSenderFromDomain = tostring(split(OrigSenderFromAddress, "@")[1])
+| where not(OrigSenderFromDomain in~ (knownOrgs))
+```
