@@ -19,10 +19,6 @@ Detects attempts to escape a Kubernetes container to the underlying host or gain
 - **Github: https://github.com/benscha/KQLAdvancedHunting**
 - **LinkedIn: https://www.linkedin.com/in/benjamin-zulliger/**
 
-#### Possible false positives
-- A system administrator or a dedicated service account runs a scheduled script, a software deployment patch, or a vulnerability scan across the network.
-- Helpdesk Escalation or On-Call Shift Support
-- IT Administrative "Jump Boxes"
 
 ## Defender XDR
 ```KQL
