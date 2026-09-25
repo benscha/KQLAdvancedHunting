@@ -22,7 +22,6 @@ Detects anomalous attempts by a containerized workload to perform Kubernetes API
 
 ## Defender XDR
 ```KQL
-// 6. Kubernetes API discovery from inside a workload
 let Lookback = 1d;
 let AllowedNamespaces = dynamic([
 	"kube-system",
