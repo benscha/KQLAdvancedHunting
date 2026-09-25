@@ -6,8 +6,8 @@
 
 | Technique ID | Title    | Link    |
 | ---  | --- | --- |
-| T1613 | Container and Resource Discovery | https://attack.mitre.org/techniques/T1613 |
-| T1059.013 | Container CLI/API | https://attack.mitre.org/techniques/T1059/023 |
+| T1552.001 | Credentials in Files | https://attack.mitre.org/techniques/T1552/001 |
+
 
 
 #### Description
