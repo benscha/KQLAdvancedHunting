@@ -8,6 +8,7 @@
 | ---  | --- | --- |
 | T1136.001 | Local Account | https://attack.mitre.org/techniques/T1136/001 |
 | T1528 | Steal Application Access Token | https://attack.mitre.org/techniques/T1528 |
+| T1098.003 | Additional Cloud Roles | https://attack.mitre.org/techniques/T1098/003 |
 
 
 #### Description
