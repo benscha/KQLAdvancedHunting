@@ -7,7 +7,7 @@
 | Technique ID | Title    | Link    |
 | ---  | --- | --- |
 | T1552 | Unsecured Credentials | https://attack.mitre.org/techniques/T1552 |
-| T1555 | Credentials from Password Stores | https://attack.mitre.org/techniques/T1552 |
+| T1555 | Credentials from Password Stores | https://attack.mitre.org/techniques/T1555 |
 | T1003.007 | Proc Filesystemv | https://attack.mitre.org/techniques/T1003/007 |
 | T1083 | File and Directory Discovery | https://attack.mitre.org/techniques/T1083 |
 
