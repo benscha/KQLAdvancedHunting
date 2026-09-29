@@ -6,7 +6,7 @@
 
 | Technique ID | Title    | Link    |
 | ---  | --- | --- |
-| T1559.001 | Active Scanning: Scanning IP Blocks | https://attack.mitre.org/techniques/T1559/001 |
+| T1595.001 | Active Scanning: Scanning IP Blocks | https://attack.mitre.org/techniques/T1559/001 |
 
 
 
