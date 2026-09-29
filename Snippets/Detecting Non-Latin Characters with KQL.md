@@ -9,7 +9,7 @@ A simple regular expression can identify scripts such as Chinese, Japanese, Kore
 let foreignCharPattern = @"[\p{Han}\p{Hiragana}\p{Katakana}\p{Hangul}\p{Arabic}\p{Hebrew}\p{Devanagari}\p{Bengali}\p{Tamil}\p{Thai}]";
 ````
 
-#### Description
+#### Description Example Query
 
 This query searches the EmailEvents table in Defender XDR for messages received during the last 30 days whose subject mentions a file sharing platform such as Teams or SharePoint and at the same time contains characters from a non-Latin script. The script list is defined once in a regex pattern based on Unicode script classes and covers Han, Hiragana, Katakana, Hangul, Arabic, Hebrew, Devanagari, Bengali, Tamil and Thai. The pattern is meant as a reusable building block that shows how Unicode properties can be used in KQL to spot foreign characters without listing individual code points.
 
