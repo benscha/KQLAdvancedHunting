@@ -21,7 +21,8 @@ This rule detects a multi-stage attack pattern in Kubernetes environments where 
 
 
 ## Defender XDR
-```KQLlet Lookback = 1d;
+```KQL
+let Lookback = 1d;
 let ProbeBin = 30m;
 let FollowUp = 1h;
 let Audit = CloudAuditEvents
