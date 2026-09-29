@@ -6,6 +6,7 @@
 
 | Technique ID | Title    | Link    |
 | ---  | --- | --- |
+| T1496 | Ressource Hijacking | https://attack.mitre.org/techniques/T1496 |
 | T1595.001 | Active Scanning: Scanning IP Blocks | https://attack.mitre.org/techniques/T1559/001 |
 
 
