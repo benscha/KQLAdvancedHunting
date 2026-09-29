@@ -22,8 +22,6 @@ Detects attempts to escape a Kubernetes container to the underlying host or gain
 
 ## Defender XDR
 ```KQL
-// K8S Container Escape
-// MITRE: T1611 (Escape to Host)  |  Severity: High
 CloudProcessEvents
 | where Timestamp > ago(1h)
 | where ContainerName != "host" and isnotempty(ContainerId)
