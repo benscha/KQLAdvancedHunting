@@ -38,111 +38,111 @@ let EndpointFollowupWindow = 4h;
 let MinimumBurstMessages = 100;
 let MinimumDistinctSenders = 20;
 let OrgDomains = EmailEvents
-    | where EmailDirection == "Inbound"
-    | distinct RecipientDomain;
+ | where EmailDirection == "Inbound"
+ | distinct RecipientDomain;
 let MailBombs =
-	EmailEvents
-	| where Timestamp >= ago(HuntLookback)
-	| where EmailDirection =~ "Inbound"
-	| extend UserEmail = tolower(RecipientEmailAddress)
-	| summarize
-		FloodStart = min(Timestamp),
-		FloodEnd = max(Timestamp),
-		BurstMessageCount = count(),
-		DistinctSenders = dcount(SenderFromAddress),
-		DistinctSubjects = dcount(Subject)
-		by UserEmail, FloodBin = bin(Timestamp, MailBurstWindow)
-	| where BurstMessageCount >= MinimumBurstMessages
-		and DistinctSenders >= MinimumDistinctSenders;
+ EmailEvents
+ | where Timestamp >= ago(HuntLookback)
+ | where EmailDirection =~ "Inbound"
+ | extend UserEmail = tolower(RecipientEmailAddress)
+ | summarize
+  FloodStart = min(Timestamp),
+  FloodEnd = max(Timestamp),
+  BurstMessageCount = count(),
+  DistinctSenders = dcount(SenderFromAddress),
+  DistinctSubjects = dcount(Subject)
+  by UserEmail, FloodBin = bin(Timestamp, MailBurstWindow)
+ | where BurstMessageCount >= MinimumBurstMessages
+  and DistinctSenders >= MinimumDistinctSenders;
 let ExternalTeamsMessages =
-	MessageEvents
-	| where Timestamp >= ago(HuntLookback)
-    | mv-expand RecipientDetails
-	| extend
-		SenderEmail = tolower(SenderEmailAddress),
-		RecipientEmail = tolower(parse_json(RecipientDetails.RecipientSmtpAddress))
-	| extend
-		SenderDomain = tolower(extract(@"@([^@]+)$", 1, SenderEmail)),
-		RecipientDomain = tolower(extract(@"@([^@]+)$", 1, RecipientEmail))
-	| where isnotempty(SenderDomain) and isnotempty(RecipientDomain)
-	| where SenderDomain !in (OrgDomains) and RecipientDomain in (OrgDomains)
-	| project
-		UserEmail = RecipientEmail,
-		TeamsTime = Timestamp,
-		ExternalSender = SenderEmail,
-		ExternalSenderDomain = SenderDomain,
-		TeamsMessageId;
+ MessageEvents
+ | where Timestamp >= ago(HuntLookback)
+ | mv-expand RecipientDetails
+ | extend
+  SenderEmail = tolower(SenderEmailAddress),
+  RecipientEmail = tolower(tostring(RecipientDetails.RecipientSmtpAddress))
+ | extend
+  SenderDomain = tolower(extract(@"@([^@]+)$", 1, SenderEmail)),
+  RecipientDomain = tolower(extract(@"@([^@]+)$", 1, RecipientEmail))
+ | where isnotempty(SenderDomain) and isnotempty(RecipientDomain)
+ | where SenderDomain !in (OrgDomains) and RecipientDomain in (OrgDomains)
+ | project
+  UserEmail = RecipientEmail,
+  TeamsTime = Timestamp,
+  ExternalSender = SenderEmail,
+  ExternalSenderDomain = SenderDomain,
+  TeamsMessageId;
 let MailThenTeams =
-	MailBombs
-	| join kind=inner ExternalTeamsMessages on UserEmail
-	| where TeamsTime >= FloodStart and TeamsTime <= FloodEnd + TeamsFollowupWindow
-	| summarize
-		TeamsTime = min(TeamsTime),
-		ExternalSender = take_any(ExternalSender),
-		ExternalSenderDomain = take_any(ExternalSenderDomain),
-		TeamsMessageId = take_any(TeamsMessageId)
-		by UserEmail, FloodBin, FloodStart, FloodEnd, BurstMessageCount, DistinctSenders, DistinctSubjects;
+ MailBombs
+ | join kind=inner ExternalTeamsMessages on UserEmail
+ | where TeamsTime >= FloodStart and TeamsTime <= FloodEnd + TeamsFollowupWindow
+ | summarize
+  TeamsTime = min(TeamsTime),
+  ExternalSender = take_any(ExternalSender),
+  ExternalSenderDomain = take_any(ExternalSenderDomain),
+  TeamsMessageId = take_any(TeamsMessageId)
+  by UserEmail, FloodBin, FloodStart, FloodEnd, BurstMessageCount, DistinctSenders, DistinctSubjects;
 let SuspiciousEndpointActivity =
-	DeviceProcessEvents
-	| where Timestamp >= ago(HuntLookback)
-	| where isnotempty(AccountUpn)
-	| extend
-		UserEmail = tolower(AccountUpn),
-		CommandLine = tolower(ProcessCommandLine),
-		ProcessName = tolower(FileName),
-		ParentName = tolower(InitiatingProcessFileName),
-		GrandparentName = tolower(InitiatingProcessParentFileName)
-	| extend
-		LaunchedFromExplorer = ParentName == "explorer.exe" or GrandparentName == "explorer.exe",
-		HasEncodedOrHiddenExecution = CommandLine matches regex @"(?i)(\s-enc(odedcommand)?\b|\s-w(indowstyle)?\s+hidden\b|frombase64string)",
-		HasRemoteFetch = CommandLine matches regex @"(?i)(https?://|downloadstring|invoke-webrequest|\biwr\b|\b(curl|wget|bitsadmin|certutil)\b)",
-		IsScriptOrShell = ProcessName in~ ("powershell.exe", "pwsh.exe", "cmd.exe", "mshta.exe", "wscript.exe", "cscript.exe", "curl.exe"),
-		IsRemoteSupportTool = ProcessName in~ (
-			"quickassist.exe", "anydesk.exe", "teamviewer.exe", "screenconnect.client.exe",
-			"rustdesk.exe", "ateraagent.exe", "splashtop.exe", "bomgar-scc.exe", "logmein.exe"
-		)
-	| where IsRemoteSupportTool
-		or (LaunchedFromExplorer and IsScriptOrShell and (HasEncodedOrHiddenExecution or HasRemoteFetch))
-	| project
-		UserEmail,
-		EndpointTime = Timestamp,
-		DeviceName,
-		DeviceId,
-		ProcessFileName = FileName,
-		ProcessCommandLine,
-		InitiatingProcessFileName,
-		InitiatingProcessParentFileName,
-		IsRemoteSupportTool,
-		HasEncodedOrHiddenExecution,
-		HasRemoteFetch;
+ DeviceProcessEvents
+ | where Timestamp >= ago(HuntLookback)
+ | where isnotempty(AccountUpn)
+ | extend
+  UserEmail = tolower(AccountUpn),
+  CommandLine = tolower(ProcessCommandLine),
+  ProcessName = tolower(FileName),
+  ParentName = tolower(InitiatingProcessFileName),
+  GrandparentName = tolower(InitiatingProcessParentFileName)
+ | extend
+  LaunchedFromExplorer = ParentName == "explorer.exe" or GrandparentName == "explorer.exe",
+  HasEncodedOrHiddenExecution = CommandLine matches regex @"(?i)(\s-enc(odedcommand)?\b|\s-w(indowstyle)?\s+hidden\b|frombase64string)",
+  HasRemoteFetch = CommandLine matches regex @"(?i)(https?://|downloadstring|invoke-webrequest|\biwr\b|\b(curl|wget|bitsadmin|certutil)\b)",
+  IsScriptOrShell = ProcessName in~ ("powershell.exe", "pwsh.exe", "cmd.exe", "mshta.exe", "wscript.exe", "cscript.exe", "curl.exe"),
+  IsRemoteSupportTool = ProcessName in~ (
+   "quickassist.exe", "anydesk.exe", "teamviewer.exe", "screenconnect.client.exe",
+   "rustdesk.exe", "ateraagent.exe", "splashtop.exe", "bomgar-scc.exe", "logmein.exe"
+  )
+ | where IsRemoteSupportTool
+  or (LaunchedFromExplorer and IsScriptOrShell and (HasEncodedOrHiddenExecution or HasRemoteFetch))
+ | project
+  UserEmail,
+  EndpointTime = Timestamp,
+  DeviceName,
+  DeviceId,
+  ProcessFileName = FileName,
+  ProcessCommandLine,
+  InitiatingProcessFileName,
+  InitiatingProcessParentFileName,
+  IsRemoteSupportTool,
+  HasEncodedOrHiddenExecution,
+  HasRemoteFetch;
 MailThenTeams
 | join kind=inner SuspiciousEndpointActivity on UserEmail
 | where EndpointTime >= TeamsTime and EndpointTime <= TeamsTime + EndpointFollowupWindow
 | extend ChainConfidence = case(
-	IsRemoteSupportTool and (HasEncodedOrHiddenExecution or HasRemoteFetch), "High",
-	IsRemoteSupportTool or (HasEncodedOrHiddenExecution and HasRemoteFetch), "High",
-	"Elevated")
+ IsRemoteSupportTool and (HasEncodedOrHiddenExecution or HasRemoteFetch), "High",
+ IsRemoteSupportTool or (HasEncodedOrHiddenExecution and HasRemoteFetch), "High",
+ "Elevated")
 | project
-	ChainConfidence,
-	UserEmail,
-	FloodStart,
-	FloodEnd,
-	BurstMessageCount,
-	DistinctSenders,
-	DistinctSubjects,
-	TeamsTime,
-	ExternalSender,
-	ExternalSenderDomain,
-	TeamsMessageId,
-	EndpointTime,
-	DeviceName,
-	DeviceId,
-	ProcessFileName,
-	ProcessCommandLine,
-	InitiatingProcessFileName,
-	InitiatingProcessParentFileName,
-	IsRemoteSupportTool,
-	HasEncodedOrHiddenExecution,
-	HasRemoteFetch
-| order by ChainConfidence asc, FloodStart desc, EndpointTime desc
+ ChainConfidence,
+ UserEmail,
+ FloodStart,
+ FloodEnd,
+ BurstMessageCount,
+ DistinctSenders,
+ DistinctSubjects,
+ TeamsTime,
+ ExternalSender,
+ ExternalSenderDomain,
+ TeamsMessageId,
+ EndpointTime,
+ DeviceName,
+ DeviceId,
+ ProcessFileName,
+ ProcessCommandLine,
+ InitiatingProcessFileName,
+ InitiatingProcessParentFileName,
+ IsRemoteSupportTool,
+ HasEncodedOrHiddenExecution,
+ HasRemoteFetch
+| order by iff(ChainConfidence == "High", 0, 1) asc, FloodStart desc, EndpointTime desc
 ```
