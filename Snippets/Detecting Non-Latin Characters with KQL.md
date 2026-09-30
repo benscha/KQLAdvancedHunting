@@ -20,11 +20,11 @@ Such subjects can be interesting when an organization normally communicates in L
 
 ## Defender XDR SAMPLE QUERY
 ```KQL
-let foreignCharPattern = @"[\p{Han}\p{Hiragana}\p{Katakana}\p{Hangul}\p{Arabic}\p{Hebrew}\p{Devanagari}\p{Bengali}\p{Tamil}\p{Thai}]";
-let SharingPlatform = dynamic(["Teams", "Sharepoint"]);
+let foreignCharPattern = @"([\p{Han}\p{Hiragana}\p{Katakana}\p{Hangul}\p{Arabic}\p{Hebrew}\p{Devanagari}\p{Bengali}\p{Tamil}\p{Thai}])";
+let SharingPlatform = dynamic(["Teams", "SharePoint"]);
 EmailEvents
 | where Timestamp > ago(30d)
 | where Subject has_any (SharingPlatform)
 | where Subject matches regex foreignCharPattern
-| extend ForeignChars = extract_all(@"([\p{Han}\p{Hiragana}\p{Katakana}\p{Hangul}\p{Arabic}\p{Hebrew}\p{Devanagari}\p{Bengali}\p{Tamil}\p{Thai}])", Subject)
+| extend ForeignChars = extract_all(foreignCharPattern, Subject)
 ```
