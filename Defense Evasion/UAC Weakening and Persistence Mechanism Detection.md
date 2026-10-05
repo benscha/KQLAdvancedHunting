@@ -22,7 +22,7 @@ Defense Evasion
 - **LinkedIn: https://www.linkedin.com/in/benjamin-zulliger/**
 
 #### References
-- 
+- Maurice Fielenbach Linkedin Post: https://www.linkedin.com/posts/mauricefielenbach_threatintel-dfir-cybersecurity-activity-7510755335171657728-hXyJ?utm_source=share&utm_medium=member_desktop&rcm=ACoAAA3PxAIBcfr6M0unx3xMtHTyCNuehMi3uNQ
 
 ## Defender XDR
 ```KQL
