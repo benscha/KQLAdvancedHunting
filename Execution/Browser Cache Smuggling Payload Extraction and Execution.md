@@ -28,10 +28,6 @@ The output includes the ExecutableLike flag, which marks payloads with executabl
 
 ## Defender XDR
 ```KQL
-// DeviceFileEvents does not expose general file-read telemetry. This query uses
-// a cache-path mention in a process command line as a proxy, then correlates
-// attributable writes and execution; it does not prove the cache was read.
-// Recommended: Custom Detection, frequency 1h. The lookback overlaps by 15m, so deduplicate by ReportId.
 let Lookback = 75m;
 let PivotWindow = 10m;
 let CacheRegex = @"(?i)(cache2[\\/]entries|[\\/]Cache_Data)";
