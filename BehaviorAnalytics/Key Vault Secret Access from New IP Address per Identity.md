@@ -25,9 +25,12 @@ Such a pattern is typical for stolen service principal credentials, leaked manag
 
 ## Sentinel
 ```KQL
+let DetectionEnd = now();
+let DetectionStart = DetectionEnd - 1h;
+let LookbackStart = DetectionEnd - 14d;
 let Baseline =
     CloudKeyVaultEvents
-    | where TimeGenerated between (ago(14d) .. ago(1h))
+    | where TimeGenerated between (LookbackStart .. DetectionStart)
     | where ActivityName in~ ("SecretGet", "KeyUnwrap", "CertificateGet")
     | where tostring(HttpStatusCode) == "200" or ResultSignature =~ "OK"
     | extend ActorId = case(
@@ -38,7 +41,7 @@ let Baseline =
     | where isnotempty(ActorId) and isnotempty(IPAddress)
     | distinct ActorId, VaultName, IPAddress;
 CloudKeyVaultEvents
-| where TimeGenerated >= ago(1h)
+| where TimeGenerated between (DetectionStart .. DetectionEnd)
 | where ActivityName in~ ("SecretGet", "KeyUnwrap", "CertificateGet")
 | where tostring(HttpStatusCode) == "200" or ResultSignature =~ "OK"
 | extend ActorId = case(
@@ -50,4 +53,61 @@ CloudKeyVaultEvents
 | join kind=leftanti Baseline on ActorId, VaultName, IPAddress
 | project TimeGenerated, ActivityName, VaultName, ActorId,
           AccountType, AccountUpn, IPAddress, RequestUri, UserAgentHeader
+```
+
+Extended with UserAgent
+```KQL
+let DetectionEnd = now();
+let DetectionStart = DetectionEnd - 1h;
+let LookbackStart = DetectionEnd - 14d;
+let Events = materialize(
+    CloudKeyVaultEvents
+    | where TimeGenerated between (LookbackStart .. DetectionEnd)
+    | where ActivityName in~ ("SecretGet", "KeyUnwrap", "CertificateGet")
+    | where tostring(HttpStatusCode) == "200"
+        or ResultSignature =~ "OK"
+    | extend ActorId = case(
+        isnotempty(AccountObjectId),
+            strcat("object:", tolower(AccountObjectId)),
+        isnotempty(AccountApplicationId),
+            strcat("app:", tolower(AccountApplicationId)),
+        isnotempty(AccountUpn),
+            strcat("upn:", tolower(AccountUpn)),
+        ""
+    )
+    | extend ActorTenant = tolower(AccountTenantId),
+             VaultId = tolower(AzureResourceId),
+             UserAgent = trim(@"\s+", tostring(UserAgentHeader))
+    | where isnotempty(ActorId)
+        and isnotempty(ActorTenant)
+        and isnotempty(VaultId)
+);
+let Baseline = Events
+    | where TimeGenerated < DetectionStart;
+let KnownActors = Baseline
+    | distinct ActorTenant, ActorId, VaultId;
+let KnownIPs = Baseline
+    | where isnotempty(IPAddress)
+    | distinct ActorTenant, ActorId, VaultId, IPAddress;
+let KnownUserAgents = Baseline
+    | where isnotempty(UserAgent)
+    | distinct ActorTenant, ActorId, VaultId, UserAgent;
+Events
+| where TimeGenerated >= DetectionStart
+| where isnotempty(IPAddress) and isnotempty(UserAgent)
+| join kind=inner KnownActors
+    on ActorTenant, ActorId, VaultId
+| join kind=leftanti KnownIPs
+    on ActorTenant, ActorId, VaultId, IPAddress
+| join kind=leftanti KnownUserAgents
+    on ActorTenant, ActorId, VaultId, UserAgent
+| summarize
+    FirstSeen = min(TimeGenerated),
+    LastSeen = max(TimeGenerated),
+    Calls = count(),
+    Operations = make_set(ActivityName, 10),
+    RequestUris = make_set(RequestUri, 50),
+    AccountUpns = make_set(AccountUpn, 10)
+    by ActorTenant, ActorId, VaultId, VaultName,
+       IPAddress, UserAgent
 ```
