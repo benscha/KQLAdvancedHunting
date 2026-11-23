@@ -23,6 +23,17 @@ The output is intended as an inventory and adoption overview rather than a threa
 
 ## Sentinel
 ```KQL
+let GetHost = (endpoint:string) {
+    tolower(tostring(parse_url(
+        iff(endpoint contains "://", endpoint, strcat("https://", endpoint))
+    ).Host))
+};
+let NetworkCounts =
+    DeviceNetworkEvents
+    | where TimeGenerated > ago(30d)
+    | extend McpHost = GetHost(RemoteUrl)
+    | where isnotempty(McpHost)
+    | summarize DeviceNetworkEventCount = count() by McpHost;
 AgentsInfo
 | where TimeGenerated > ago(30d)
 | summarize arg_max(TimeGenerated, *) by AgentId
@@ -35,5 +46,10 @@ AgentsInfo
 | distinct McpServerName, McpServerType, McpServerEndpoint, AgentId
 | summarize AgentCount = count()
     by McpServerName, McpServerType, McpServerEndpoint
+| extend McpHost = GetHost(McpServerEndpoint)
+| join kind=leftouter NetworkCounts on McpHost
+| extend DeviceNetworkEventCount = coalesce(DeviceNetworkEventCount, tolong(0))
+| project McpServerName, McpServerType, McpServerEndpoint,
+          AgentCount, DeviceNetworkEventCount
 | order by AgentCount desc
 ```
