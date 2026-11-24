@@ -26,6 +26,8 @@ Because this is an inventory and tuning query rather than a detection of a speci
 
 ## Sentinel
 ```KQL
+let excludedRiskSeverity = dynamic([""]);
+let excludedRiskTitle = dynamic([""]);
 AgentsInfo
 | where TimeGenerated > ago(30d)
 | summarize arg_max(TimeGenerated, *) by AgentId
